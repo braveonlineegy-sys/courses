@@ -22,9 +22,12 @@ export const banUserSchema = z.object({
   reason: z.string().min(1, "Ban reason is required"),
 });
 
-export const recoveryActionSchema = z.object({
-  adminNote: z.string().optional(),
-});
+export const recoveryActionSchema = z
+  .object({
+    adminNote: z.string().optional(),
+  })
+  .optional()
+  .default({});
 
 // ============ VALIDATORS ============
 export const createUserValidator = zValidator(

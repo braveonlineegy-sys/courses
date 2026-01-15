@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { requireAdmin } from "../../middlewares/auth.middleware";
 import {
   createUser,
@@ -10,11 +11,7 @@ import {
   approveRecoveryRequest,
   rejectRecoveryRequest,
 } from "./admin.service";
-import {
-  createUserValidator,
-  banUserValidator,
-  recoveryActionValidator,
-} from "./admin.schema";
+import { createUserValidator, banUserValidator } from "./admin.schema";
 
 // ============ ADMIN ROUTES ============
 export const adminRoute = new Hono()
@@ -23,18 +20,12 @@ export const adminRoute = new Hono()
 
   // CREATE USER
   .post("/users", createUserValidator, async (c) => {
-    try {
-      const input = c.req.valid("json");
-      const user = await createUser(input);
-      return c.json(
-        { success: true, message: "User created successfully", data: { user } },
-        201
-      );
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to create user";
-      return c.json({ success: false, message }, 400);
-    }
+    const input = c.req.valid("json");
+    const user = await createUser(input);
+    return c.json(
+      { success: true, message: "User created successfully", data: { user } },
+      201
+    );
   })
 
   // GET ALL USERS
@@ -53,7 +44,7 @@ export const adminRoute = new Hono()
     const user = await getUserById(id);
 
     if (!user) {
-      return c.json({ success: false, message: "User not found" }, 404);
+      throw new HTTPException(404, { message: "User not found" });
     }
 
     return c.json({
@@ -67,33 +58,23 @@ export const adminRoute = new Hono()
   .patch("/users/:id/ban", banUserValidator, async (c) => {
     const id = c.req.param("id");
     const { reason } = c.req.valid("json");
-
-    try {
-      const user = await banUser(id, reason);
-      return c.json({
-        success: true,
-        message: "User banned successfully",
-        data: { user },
-      });
-    } catch (error) {
-      return c.json({ success: false, message: "Failed to ban user" }, 400);
-    }
+    const user = await banUser(id, reason);
+    return c.json({
+      success: true,
+      message: "User banned successfully",
+      data: { user },
+    });
   })
 
   // UNBAN USER
   .patch("/users/:id/unban", async (c) => {
     const id = c.req.param("id");
-
-    try {
-      const user = await unbanUser(id);
-      return c.json({
-        success: true,
-        message: "User unbanned successfully",
-        data: { user },
-      });
-    } catch (error) {
-      return c.json({ success: false, message: "Failed to unban user" }, 400);
-    }
+    const user = await unbanUser(id);
+    return c.json({
+      success: true,
+      message: "User unbanned successfully",
+      data: { user },
+    });
   })
 
   // GET RECOVERY REQUESTS
@@ -107,40 +88,33 @@ export const adminRoute = new Hono()
   })
 
   // APPROVE RECOVERY
-  .patch(
-    "/recovery-requests/:id/approve",
-    recoveryActionValidator,
-    async (c) => {
-      const id = c.req.param("id");
-      const { adminNote } = c.req.valid("json");
+  .patch("/recovery-requests/:id/approve", async (c) => {
+    const id = c.req.param("id");
+    let adminNote: string | undefined;
 
-      try {
-        await approveRecoveryRequest(id, adminNote);
-        return c.json({ success: true, message: "Recovery request approved" });
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to approve request";
-        return c.json({ success: false, message }, 400);
-      }
+    try {
+      const body = await c.req.json();
+      adminNote = body?.adminNote;
+    } catch {
+      // No body sent, which is fine
     }
-  )
+
+    await approveRecoveryRequest(id, adminNote);
+    return c.json({ success: true, message: "Recovery request approved" });
+  })
 
   // REJECT RECOVERY
-  .patch(
-    "/recovery-requests/:id/reject",
-    recoveryActionValidator,
-    async (c) => {
-      const id = c.req.param("id");
-      const { adminNote } = c.req.valid("json");
+  .patch("/recovery-requests/:id/reject", async (c) => {
+    const id = c.req.param("id");
+    let adminNote: string | undefined;
 
-      try {
-        await rejectRecoveryRequest(id, adminNote);
-        return c.json({ success: true, message: "Recovery request rejected" });
-      } catch (error) {
-        return c.json(
-          { success: false, message: "Failed to reject request" },
-          400
-        );
-      }
+    try {
+      const body = await c.req.json();
+      adminNote = body?.adminNote;
+    } catch {
+      // No body sent, which is fine
     }
-  );
+
+    await rejectRecoveryRequest(id, adminNote);
+    return c.json({ success: true, message: "Recovery request rejected" });
+  });

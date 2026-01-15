@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import prisma from "../../lib/db";
 import { auth } from "../../lib/auth";
 import {
@@ -23,119 +24,89 @@ export const authRoute = new Hono()
   .post("/login", loginValidator, async (c) => {
     const { email, password, deviceId } = c.req.valid("json");
 
-    try {
-      const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email } });
 
-      if (!user) {
-        return c.json({ success: false, message: "Invalid credentials" }, 401);
-      }
-
-      if (user.isBanned) {
-        return c.json(
-          { success: false, message: user.banReason || "Account is banned" },
-          403
-        );
-      }
-
-      // Device binding only for USER role (students)
-      if (user.role === "USER") {
-        const deviceCheck = await checkDeviceBinding(user.id, deviceId);
-
-        if (!deviceCheck.allowed) {
-          return c.json(
-            {
-              success: false,
-              message: deviceCheck.reason || "Device not allowed",
-            },
-            403
-          );
-        }
-
-        if (deviceCheck.needsBinding) {
-          await bindDevice(user.id, deviceId);
-        }
-      }
-
-      const response = await auth.api.signInEmail({
-        body: { email, password },
-      });
-
-      return c.json({
-        success: true,
-        message: "Login successful",
-        data: { user: response.user, token: response.token },
-      });
-    } catch (error) {
-      console.error("Login error:", error);
-      return c.json({ success: false, message: "Invalid credentials" }, 401);
+    if (!user) {
+      throw new HTTPException(401, { message: "Invalid credentials" });
     }
+
+    if (user.isBanned) {
+      throw new HTTPException(403, {
+        message: user.banReason || "Account is banned",
+      });
+    }
+
+    // Device binding only for USER role (students)
+    if (user.role === "USER") {
+      const deviceCheck = await checkDeviceBinding(user.id, deviceId);
+
+      if (!deviceCheck.allowed) {
+        throw new HTTPException(403, {
+          message: deviceCheck.reason || "Device not allowed",
+        });
+      }
+
+      if (deviceCheck.needsBinding) {
+        await bindDevice(user.id, deviceId);
+      }
+    }
+
+    const response = await auth.api.signInEmail({ body: { email, password } });
+
+    return c.json({
+      success: true,
+      message: "Login successful",
+      data: { user: response.user, token: response.token },
+    });
   })
 
   // ============ SIGNUP ============
   .post("/signup", signupValidator, async (c) => {
     const { email, password, name } = c.req.valid("json");
 
-    try {
-      const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({ where: { email } });
 
-      if (existingUser) {
-        return c.json(
-          { success: false, message: "Email already registered" },
-          400
-        );
-      }
-
-      const response = await auth.api.signUpEmail({
-        body: { email, password, name },
-      });
-
-      // Auto-verify email
-      if (response.user?.id) {
-        await prisma.user.update({
-          where: { id: response.user.id },
-          data: { emailVerified: true },
-        });
-      }
-
-      return c.json(
-        {
-          success: true,
-          message: "Account created successfully",
-          data: {
-            user: { ...response.user, emailVerified: true },
-            token: response.token,
-          },
-        },
-        201
-      );
-    } catch (error) {
-      console.error("Signup error:", error);
-      return c.json({ success: false, message: "Signup failed" }, 500);
+    if (existingUser) {
+      throw new HTTPException(400, { message: "Email already registered" });
     }
+
+    const response = await auth.api.signUpEmail({
+      body: { email, password, name },
+    });
+
+    // Auto-verify email
+    if (response.user?.id) {
+      await prisma.user.update({
+        where: { id: response.user.id },
+        data: { emailVerified: true },
+      });
+    }
+
+    return c.json(
+      {
+        success: true,
+        message: "Account created successfully",
+        data: {
+          user: { ...response.user, emailVerified: true },
+          token: response.token,
+        },
+      },
+      201
+    );
   })
 
   // ============ GOOGLE LOGIN ============
   .post("/google", googleAuthValidator, async (c) => {
-    const { idToken, deviceId } = c.req.valid("json");
-
-    try {
-      // For mobile apps, the client already has the Google ID token
-      // Better-auth handles Google OAuth via its built-in routes
-      return c.json({
-        success: true,
-        message: "Use /api/auth/signin/google for Google authentication",
-        data: {
-          authUrl: "/api/auth/signin/google",
-          callbackUrl: "/api/auth/callback/google",
-        },
-      });
-    } catch (error) {
-      console.error("Google auth error:", error);
-      return c.json(
-        { success: false, message: "Google authentication failed" },
-        400
-      );
-    }
+    // For mobile apps, the client already has the Google ID token
+    // Better-auth handles Google OAuth via its built-in routes
+    return c.json({
+      success: true,
+      message: "Use /api/auth/signin/google for Google authentication",
+      data: {
+        authUrl: "/api/auth/signin/google",
+        callbackUrl: "/api/auth/callback/google",
+      },
+    });
   })
 
   // ============ FORGOT PASSWORD ============
@@ -146,8 +117,8 @@ export const authRoute = new Hono()
       await auth.api.requestPasswordReset({
         body: { email, redirectTo: "/reset-password" },
       });
-    } catch (error) {
-      console.error("Forgot password error:", error);
+    } catch {
+      // Ignore errors to prevent email enumeration
     }
 
     // Always return success to prevent email enumeration
@@ -160,60 +131,37 @@ export const authRoute = new Hono()
   // ============ RESET PASSWORD ============
   .post("/reset-password", resetPasswordValidator, async (c) => {
     const { token, newPassword } = c.req.valid("json");
-
-    try {
-      await auth.api.resetPassword({ body: { token, newPassword } });
-      return c.json({ success: true, message: "Password reset successfully" });
-    } catch (error) {
-      console.error("Reset password error:", error);
-      return c.json(
-        { success: false, message: "Failed to reset password" },
-        400
-      );
-    }
+    await auth.api.resetPassword({ body: { token, newPassword } });
+    return c.json({ success: true, message: "Password reset successfully" });
   })
 
   // ============ RECOVERY REQUEST ============
   .post("/recovery/request", recoveryRequestValidator, async (c) => {
-    try {
-      const { email, message, deviceId } = c.req.valid("json");
+    const { email, message, deviceId } = c.req.valid("json");
 
-      const user = await prisma.user.findUnique({
-        where: { email },
-        select: { id: true, isBanned: true },
-      });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, isBanned: true },
+    });
 
-      if (!user) {
-        return c.json({ success: false, message: "User not found" }, 404);
-      }
-
-      if (!user.isBanned) {
-        return c.json(
-          { success: false, message: "Account is not banned" },
-          400
-        );
-      }
-
-      const request = await createRecoveryRequest(user.id, {
-        message,
-        deviceId,
-      });
-
-      return c.json(
-        {
-          success: true,
-          message: "Recovery request submitted successfully",
-          data: { requestId: request.id },
-        },
-        201
-      );
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to submit recovery request";
-      return c.json({ success: false, message: errorMessage }, 400);
+    if (!user) {
+      throw new HTTPException(404, { message: "User not found" });
     }
+
+    if (!user.isBanned) {
+      throw new HTTPException(400, { message: "Account is not banned" });
+    }
+
+    const request = await createRecoveryRequest(user.id, { message, deviceId });
+
+    return c.json(
+      {
+        success: true,
+        message: "Recovery request submitted successfully",
+        data: { requestId: request.id },
+      },
+      201
+    );
   })
 
   // ============ RECOVERY STATUS ============
@@ -226,16 +174,13 @@ export const authRoute = new Hono()
     });
 
     if (!user) {
-      return c.json({ success: false, message: "User not found" }, 404);
+      throw new HTTPException(404, { message: "User not found" });
     }
 
     const status = await getLatestRecoveryStatus(user.id);
 
     if (!status) {
-      return c.json(
-        { success: false, message: "No recovery request found" },
-        404
-      );
+      throw new HTTPException(404, { message: "No recovery request found" });
     }
 
     return c.json({

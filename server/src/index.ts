@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { Scalar } from "@scalar/hono-api-reference";
+import { logger } from "hono/logger";
 
 import { applyOnError } from "./lib/on-error";
 import { CorsMiddleware } from "./middlewares/cors.middleware";
@@ -9,7 +10,7 @@ import { authRoute } from "./features/auth/auth.route";
 import env from "./lib/config";
 
 // Create base app
-const app = new Hono().basePath("/api");
+const app = new Hono().basePath("/api").use(logger());
 
 // Apply CORS middleware
 app.use("/*", CorsMiddleware);
