@@ -1,159 +1,147 @@
-import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
 import { requireAdmin } from "../../middlewares/auth.middleware";
 import {
-  createUserValidator,
-  banUserValidator,
-  recoveryActionValidator,
+  createUser,
+  getAllUsers,
+  getUserById,
+  banUser,
+  unbanUser,
+  getPendingRecoveryRequests,
+  approveRecoveryRequest,
+  rejectRecoveryRequest,
+} from "./admin.service";
+import {
   createUserSchema,
   banUserSchema,
   recoveryActionSchema,
-  idParamSchema,
 } from "./admin.schema";
-import {
-  createUserHandler,
-  getAllUsersHandler,
-  getUserByIdHandler,
-  banUserHandler,
-  unbanUserHandler,
-  getRecoveryRequestsHandler,
-  approveRecoveryHandler,
-  rejectRecoveryHandler,
-} from "./admin.controller";
 
-// ============ ROUTE DEFINITIONS ============
-const createUserRoute = createRoute({
-  method: "post",
-  path: "/users",
-  tags: ["Admin"],
-  summary: "Create a new user",
-  description: "Admin creates a new teacher or student account",
-  security: [{ bearerAuth: [] }],
-  request: {
-    body: { content: { "application/json": { schema: createUserSchema } } },
-  },
-  responses: {
-    201: { description: "User created successfully" },
-    400: { description: "Validation error or email exists" },
-    403: { description: "Admin only" },
-  },
-});
+// ============ ADMIN ROUTES ============
+export const adminRoute = new Hono()
+  // Apply admin middleware to all routes
+  .use("/*", requireAdmin)
 
-const getAllUsersRoute = createRoute({
-  method: "get",
-  path: "/users",
-  tags: ["Admin"],
-  summary: "Get all users",
-  security: [{ bearerAuth: [] }],
-  responses: {
-    200: { description: "List of all users" },
-    403: { description: "Admin only" },
-  },
-});
+  // CREATE USER
+  .post("/users", zValidator("json", createUserSchema), async (c) => {
+    try {
+      const input = c.req.valid("json");
+      const user = await createUser(input);
+      return c.json(
+        { success: true, message: "User created successfully", data: { user } },
+        201
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to create user";
+      return c.json({ success: false, message }, 400);
+    }
+  })
 
-const getUserByIdRoute = createRoute({
-  method: "get",
-  path: "/users/:id",
-  tags: ["Admin"],
-  summary: "Get user by ID",
-  security: [{ bearerAuth: [] }],
-  request: { params: idParamSchema },
-  responses: {
-    200: { description: "User details" },
-    404: { description: "User not found" },
-  },
-});
+  // GET ALL USERS
+  .get("/users", async (c) => {
+    const users = await getAllUsers();
+    return c.json({
+      success: true,
+      message: "Users retrieved successfully",
+      data: { users },
+    });
+  })
 
-const banUserRoute = createRoute({
-  method: "patch",
-  path: "/users/:id/ban",
-  tags: ["Admin"],
-  summary: "Ban a user",
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: idParamSchema,
-    body: { content: { "application/json": { schema: banUserSchema } } },
-  },
-  responses: {
-    200: { description: "User banned successfully" },
-    400: { description: "Validation error or failed to ban" },
-  },
-});
+  // GET USER BY ID
+  .get("/users/:id", async (c) => {
+    const id = c.req.param("id");
+    const user = await getUserById(id);
 
-const unbanUserRoute = createRoute({
-  method: "patch",
-  path: "/users/:id/unban",
-  tags: ["Admin"],
-  summary: "Unban a user",
-  security: [{ bearerAuth: [] }],
-  request: { params: idParamSchema },
-  responses: {
-    200: { description: "User unbanned successfully" },
-    400: { description: "Failed to unban user" },
-  },
-});
+    if (!user) {
+      return c.json({ success: false, message: "User not found" }, 404);
+    }
 
-const getRecoveryRequestsRoute = createRoute({
-  method: "get",
-  path: "/recovery-requests",
-  tags: ["Admin"],
-  summary: "Get pending recovery requests",
-  security: [{ bearerAuth: [] }],
-  responses: {
-    200: { description: "List of pending requests" },
-  },
-});
+    return c.json({
+      success: true,
+      message: "User retrieved successfully",
+      data: { user },
+    });
+  })
 
-const approveRecoveryRoute = createRoute({
-  method: "patch",
-  path: "/recovery-requests/:id/approve",
-  tags: ["Admin"],
-  summary: "Approve recovery request",
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: idParamSchema,
-    body: { content: { "application/json": { schema: recoveryActionSchema } } },
-  },
-  responses: {
-    200: { description: "Request approved" },
-    400: { description: "Failed to approve" },
-  },
-});
+  // BAN USER
+  .patch("/users/:id/ban", zValidator("json", banUserSchema), async (c) => {
+    const id = c.req.param("id");
+    const { reason } = c.req.valid("json");
 
-const rejectRecoveryRoute = createRoute({
-  method: "patch",
-  path: "/recovery-requests/:id/reject",
-  tags: ["Admin"],
-  summary: "Reject recovery request",
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: idParamSchema,
-    body: { content: { "application/json": { schema: recoveryActionSchema } } },
-  },
-  responses: {
-    200: { description: "Request rejected" },
-    400: { description: "Failed to reject" },
-  },
-});
+    try {
+      const user = await banUser(id, reason);
+      return c.json({
+        success: true,
+        message: "User banned successfully",
+        data: { user },
+      });
+    } catch (error) {
+      return c.json({ success: false, message: "Failed to ban user" }, 400);
+    }
+  })
 
-// ============ REGISTER ROUTES ============
-const app = new OpenAPIHono();
+  // UNBAN USER
+  .patch("/users/:id/unban", async (c) => {
+    const id = c.req.param("id");
 
-// Admin middleware for all routes
-app.use("/*", requireAdmin);
+    try {
+      const user = await unbanUser(id);
+      return c.json({
+        success: true,
+        message: "User unbanned successfully",
+        data: { user },
+      });
+    } catch (error) {
+      return c.json({ success: false, message: "Failed to unban user" }, 400);
+    }
+  })
 
-// Apply validators
-app.use("/users", createUserValidator);
-app.use("/users/:id/ban", banUserValidator);
-app.use("/recovery-requests/:id/approve", recoveryActionValidator);
-app.use("/recovery-requests/:id/reject", recoveryActionValidator);
+  // GET RECOVERY REQUESTS
+  .get("/recovery-requests", async (c) => {
+    const requests = await getPendingRecoveryRequests();
+    return c.json({
+      success: true,
+      message: "Recovery requests retrieved successfully",
+      data: { requests },
+    });
+  })
 
-// Chain openapi routes for proper type inference
-export const adminRoute = app
-  .openapi(createUserRoute, createUserHandler)
-  .openapi(getAllUsersRoute, getAllUsersHandler)
-  .openapi(getUserByIdRoute, getUserByIdHandler)
-  .openapi(banUserRoute, banUserHandler)
-  .openapi(unbanUserRoute, unbanUserHandler)
-  .openapi(getRecoveryRequestsRoute, getRecoveryRequestsHandler)
-  .openapi(approveRecoveryRoute, approveRecoveryHandler)
-  .openapi(rejectRecoveryRoute, rejectRecoveryHandler);
+  // APPROVE RECOVERY
+  .patch(
+    "/recovery-requests/:id/approve",
+    zValidator("json", recoveryActionSchema),
+    async (c) => {
+      const id = c.req.param("id");
+      const input = c.req.valid("json");
+
+      try {
+        await approveRecoveryRequest(id, input?.adminNote);
+        return c.json({ success: true, message: "Recovery request approved" });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to approve request";
+        return c.json({ success: false, message }, 400);
+      }
+    }
+  )
+
+  // REJECT RECOVERY
+  .patch(
+    "/recovery-requests/:id/reject",
+    zValidator("json", recoveryActionSchema),
+    async (c) => {
+      const id = c.req.param("id");
+      const input = c.req.valid("json");
+
+      try {
+        await rejectRecoveryRequest(id, input?.adminNote);
+        return c.json({ success: true, message: "Recovery request rejected" });
+      } catch (error) {
+        return c.json(
+          { success: false, message: "Failed to reject request" },
+          400
+        );
+      }
+    }
+  );

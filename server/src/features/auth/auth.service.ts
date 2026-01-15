@@ -1,13 +1,46 @@
 import prisma from "../../lib/db";
 import { RecoveryStatus } from "../../lib/constants";
 
-// Type for recovery request input (inline)
+// ============ DEVICE BINDING ============
+export const checkDeviceBinding = async (userId: string, deviceId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { deviceId: true },
+  });
+
+  if (!user) {
+    return { allowed: false, reason: "User not found" };
+  }
+
+  // First login - no device bound yet
+  if (!user.deviceId) {
+    return { allowed: true, needsBinding: true };
+  }
+
+  // Check if device matches
+  if (user.deviceId !== deviceId) {
+    return {
+      allowed: false,
+      reason: "This account is bound to another device",
+    };
+  }
+
+  return { allowed: true, needsBinding: false };
+};
+
+export const bindDevice = async (userId: string, deviceId: string) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { deviceId },
+  });
+};
+
+// ============ RECOVERY REQUESTS ============
 interface RecoveryRequestInput {
   message: string;
   deviceId: string;
 }
 
-// Create a recovery request
 export const createRecoveryRequest = async (
   userId: string,
   input: RecoveryRequestInput
@@ -33,15 +66,6 @@ export const createRecoveryRequest = async (
   });
 };
 
-// Get user's recovery requests
-export const getUserRecoveryRequests = async (userId: string) => {
-  return prisma.recoveryRequest.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-  });
-};
-
-// Get latest recovery request status
 export const getLatestRecoveryStatus = async (userId: string) => {
   return prisma.recoveryRequest.findFirst({
     where: { userId },

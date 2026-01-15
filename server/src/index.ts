@@ -1,55 +1,45 @@
 import { Hono } from "hono";
-import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
 
 import { applyOnError } from "./lib/on-error";
 import { CorsMiddleware } from "./middlewares/cors.middleware";
 import { auth } from "./lib/auth";
 import { adminRoute } from "./features/admin/admin.route";
-import { recoveryRoute } from "./features/recovery/recovery.route";
 import { authRoute } from "./features/auth/auth.route";
 import env from "./lib/config";
 
-// Create base app with OpenAPIHono
-const app = new OpenAPIHono().basePath("/api");
-app.get("/", (c) => c.json({ status: "ok", message: "API is running" }));
+// Create base app
+const app = new Hono().basePath("/api");
 
-// CORS for all routes
+// Apply CORS middleware
 app.use("/*", CorsMiddleware);
 
-// Health check
-app.get("/", (c) => c.json({ status: "ok", message: "API is running" }));
+// ============ ROUTES (chained for type inference) ============
+const routes = app
+  // Health check
+  .get("/", (c) => c.json({ status: "ok", message: "API is running" }))
 
-// Custom auth routes (MUST be before better-auth wildcard)
-app.route("/auth/custom", authRoute);
+  // Custom auth routes (MUST be before better-auth wildcard)
+  .route("/auth/custom", authRoute)
 
-// Better-auth routes (catch-all for other auth endpoints)
-app.on(["POST", "GET"], "/auth/*", (c) => auth.handler(c.req.raw));
+  // Better-auth routes (catch-all for other auth endpoints like Google OAuth)
+  .on(["POST", "GET"], "/auth/*", (c) => auth.handler(c.req.raw))
 
-// Admin routes
-app.route("/admin", adminRoute);
-
-// Recovery account routes
-app.route("/recovery", recoveryRoute);
+  // Admin routes
+  .route("/admin", adminRoute);
 
 // ============ OPENAPI DOCS ============
-app.doc("/openapi.json", (c) => ({
-  openapi: "3.1.0",
-  info: {
-    title: "Courses API",
-    version: "1.0.0",
-    description: "API documentation for Courses mobile application",
-  },
-  tags: [
-    {
-      name: "Auth",
-      description: "Authentication (login, signup, password reset)",
-    },
-    { name: "Admin", description: "Admin-only user management endpoints" },
-    { name: "Recovery", description: "Account recovery for banned users" },
-  ],
-  servers: [{ url: new URL(c.req.url).origin, description: "Current server" }],
-}));
+import { openApiSpec } from "./lib/openapi";
+
+app.get("/openapi.json", (c) => {
+  const spec = {
+    ...openApiSpec,
+    servers: [
+      { url: new URL(c.req.url).origin, description: "Current server" },
+    ],
+  };
+  return c.json(spec);
+});
 
 app.get(
   "/docs",
@@ -70,12 +60,4 @@ export default {
 };
 
 // ============ CLIENT TYPES ============
-// Create a typed representation for the client (using regular Hono for proper type inference)
-const typedApp = new Hono()
-  .basePath("/api")
-  .get("/", (c) => c.json({ status: "ok", message: "API is running" }))
-  .route("/auth/custom", authRoute)
-  .route("/admin", adminRoute)
-  .route("/recovery", recoveryRoute);
-
-export type AppType = typeof typedApp;
+export type AppType = typeof routes;

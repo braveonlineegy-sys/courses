@@ -1,6 +1,6 @@
 import prisma from "../../lib/db";
 import { RecoveryStatus } from "../../lib/constants";
-import type { CreateUserInput } from "../../validators/auth.validators";
+import type { CreateUserInput } from "./admin.schema";
 
 // We'll use better-auth's internal password handling
 // Admin creates user, then user can reset password via forgot-password flow
