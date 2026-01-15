@@ -12,6 +12,7 @@ import env from "./lib/config";
 
 // Create base app with OpenAPIHono
 const app = new OpenAPIHono().basePath("/api");
+app.get("/", (c) => c.json({ status: "ok", message: "API is running" }));
 
 // CORS for all routes
 app.use("/*", CorsMiddleware);
