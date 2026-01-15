@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import prisma from "../../lib/db";
 import { auth } from "../../lib/auth";
+import { validationHook } from "../../core/validation";
 import {
   loginSchema,
   signupSchema,
@@ -18,10 +19,14 @@ import {
   getLatestRecoveryStatus,
 } from "./auth.service";
 
+// Helper to create validator with hook
+const validate = (target: "json" | "query", schema: any) =>
+  zValidator(target, schema, validationHook as any);
+
 // ============ AUTH ROUTES ============
 export const authRoute = new Hono()
   // ============ LOGIN ============
-  .post("/login", zValidator("json", loginSchema), async (c) => {
+  .post("/login", validate("json", loginSchema), async (c) => {
     const { email, password, deviceId } = c.req.valid("json");
 
     try {
@@ -73,7 +78,7 @@ export const authRoute = new Hono()
   })
 
   // ============ SIGNUP ============
-  .post("/signup", zValidator("json", signupSchema), async (c) => {
+  .post("/signup", validate("json", signupSchema), async (c) => {
     const { email, password, name } = c.req.valid("json");
 
     try {
@@ -116,7 +121,7 @@ export const authRoute = new Hono()
   })
 
   // ============ GOOGLE LOGIN ============
-  .post("/google", zValidator("json", googleAuthSchema), async (c) => {
+  .post("/google", validate("json", googleAuthSchema), async (c) => {
     const { idToken, deviceId } = c.req.valid("json");
 
     try {
@@ -146,7 +151,7 @@ export const authRoute = new Hono()
   // ============ FORGOT PASSWORD ============
   .post(
     "/forgot-password",
-    zValidator("json", forgotPasswordSchema),
+    validate("json", forgotPasswordSchema),
     async (c) => {
       const { email } = c.req.valid("json");
 
@@ -167,32 +172,28 @@ export const authRoute = new Hono()
   )
 
   // ============ RESET PASSWORD ============
-  .post(
-    "/reset-password",
-    zValidator("json", resetPasswordSchema),
-    async (c) => {
-      const { token, newPassword } = c.req.valid("json");
+  .post("/reset-password", validate("json", resetPasswordSchema), async (c) => {
+    const { token, newPassword } = c.req.valid("json");
 
-      try {
-        await auth.api.resetPassword({ body: { token, newPassword } });
-        return c.json({
-          success: true,
-          message: "Password reset successfully",
-        });
-      } catch (error) {
-        console.error("Reset password error:", error);
-        return c.json(
-          { success: false, message: "Failed to reset password" },
-          400
-        );
-      }
+    try {
+      await auth.api.resetPassword({ body: { token, newPassword } });
+      return c.json({
+        success: true,
+        message: "Password reset successfully",
+      });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      return c.json(
+        { success: false, message: "Failed to reset password" },
+        400
+      );
     }
-  )
+  })
 
   // ============ RECOVERY REQUEST ============
   .post(
     "/recovery/request",
-    zValidator("json", recoveryRequestSchema),
+    validate("json", recoveryRequestSchema),
     async (c) => {
       try {
         const { email, message, deviceId } = c.req.valid("json");
@@ -237,7 +238,7 @@ export const authRoute = new Hono()
   )
 
   // ============ RECOVERY STATUS ============
-  .get("/recovery/status", zValidator("query", emailQuerySchema), async (c) => {
+  .get("/recovery/status", validate("query", emailQuerySchema), async (c) => {
     const { email } = c.req.valid("query");
 
     const user = await prisma.user.findUnique({

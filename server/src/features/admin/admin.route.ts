@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { requireAdmin } from "../../middlewares/auth.middleware";
+import { validationHook } from "../../core/validation";
 import {
   createUser,
   getAllUsers,
@@ -17,13 +18,17 @@ import {
   recoveryActionSchema,
 } from "./admin.schema";
 
+// Helper to create validator with hook
+const validate = (target: "json" | "query", schema: any) =>
+  zValidator(target, schema, validationHook as any);
+
 // ============ ADMIN ROUTES ============
 export const adminRoute = new Hono()
   // Apply admin middleware to all routes
   .use("/*", requireAdmin)
 
   // CREATE USER
-  .post("/users", zValidator("json", createUserSchema), async (c) => {
+  .post("/users", validate("json", createUserSchema), async (c) => {
     try {
       const input = c.req.valid("json");
       const user = await createUser(input);
@@ -65,7 +70,7 @@ export const adminRoute = new Hono()
   })
 
   // BAN USER
-  .patch("/users/:id/ban", zValidator("json", banUserSchema), async (c) => {
+  .patch("/users/:id/ban", validate("json", banUserSchema), async (c) => {
     const id = c.req.param("id");
     const { reason } = c.req.valid("json");
 
@@ -110,7 +115,7 @@ export const adminRoute = new Hono()
   // APPROVE RECOVERY
   .patch(
     "/recovery-requests/:id/approve",
-    zValidator("json", recoveryActionSchema),
+    validate("json", recoveryActionSchema),
     async (c) => {
       const id = c.req.param("id");
       const input = c.req.valid("json");
@@ -129,7 +134,7 @@ export const adminRoute = new Hono()
   // REJECT RECOVERY
   .patch(
     "/recovery-requests/:id/reject",
-    zValidator("json", recoveryActionSchema),
+    validate("json", recoveryActionSchema),
     async (c) => {
       const id = c.req.param("id");
       const input = c.req.valid("json");
