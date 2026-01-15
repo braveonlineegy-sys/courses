@@ -32,10 +32,7 @@ const recoveryActionValidationSchema = z.object({
 // ============ OPENAPI SCHEMAS (for documentation) ============
 export const createUserSchema = zodOpenApi
   .object({
-    email: zodOpenApi
-      .string()
-      .email()
-      .openapi({ example: "teacher@example.com" }),
+    email: zodOpenApi.email().openapi({ example: "teacher@example.com" }),
     name: zodOpenApi.string().min(2).openapi({ example: "Teacher Name" }),
     password: zodOpenApi
       .string()
