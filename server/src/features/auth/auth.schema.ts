@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
+import { validationHook } from "../../lib/zod";
 
 // ============ REUSABLE SCHEMAS ============
 export const passwordSchema = z
@@ -45,6 +47,35 @@ export const recoveryRequestSchema = z.object({
 export const emailQuerySchema = z.object({
   email: z.string().email("Invalid email"),
 });
+
+// ============ VALIDATORS ============
+export const loginValidator = zValidator("json", loginSchema, validationHook);
+export const signupValidator = zValidator("json", signupSchema, validationHook);
+export const forgotPasswordValidator = zValidator(
+  "json",
+  forgotPasswordSchema,
+  validationHook
+);
+export const resetPasswordValidator = zValidator(
+  "json",
+  resetPasswordSchema,
+  validationHook
+);
+export const googleAuthValidator = zValidator(
+  "json",
+  googleAuthSchema,
+  validationHook
+);
+export const recoveryRequestValidator = zValidator(
+  "json",
+  recoveryRequestSchema,
+  validationHook
+);
+export const emailQueryValidator = zValidator(
+  "query",
+  emailQuerySchema,
+  validationHook
+);
 
 // ============ TYPES ============
 export type LoginInput = z.infer<typeof loginSchema>;

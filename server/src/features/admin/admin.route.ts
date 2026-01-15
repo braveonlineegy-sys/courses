@@ -1,7 +1,5 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
 import { requireAdmin } from "../../middlewares/auth.middleware";
-import { validationHook } from "../../core/validation";
 import {
   createUser,
   getAllUsers,
@@ -13,14 +11,10 @@ import {
   rejectRecoveryRequest,
 } from "./admin.service";
 import {
-  createUserSchema,
-  banUserSchema,
-  recoveryActionSchema,
+  createUserValidator,
+  banUserValidator,
+  recoveryActionValidator,
 } from "./admin.schema";
-
-// Helper to create validator with hook
-const validate = (target: "json" | "query", schema: any) =>
-  zValidator(target, schema, validationHook as any);
 
 // ============ ADMIN ROUTES ============
 export const adminRoute = new Hono()
@@ -28,7 +22,7 @@ export const adminRoute = new Hono()
   .use("/*", requireAdmin)
 
   // CREATE USER
-  .post("/users", validate("json", createUserSchema), async (c) => {
+  .post("/users", createUserValidator, async (c) => {
     try {
       const input = c.req.valid("json");
       const user = await createUser(input);
@@ -70,7 +64,7 @@ export const adminRoute = new Hono()
   })
 
   // BAN USER
-  .patch("/users/:id/ban", validate("json", banUserSchema), async (c) => {
+  .patch("/users/:id/ban", banUserValidator, async (c) => {
     const id = c.req.param("id");
     const { reason } = c.req.valid("json");
 
@@ -115,13 +109,13 @@ export const adminRoute = new Hono()
   // APPROVE RECOVERY
   .patch(
     "/recovery-requests/:id/approve",
-    validate("json", recoveryActionSchema),
+    recoveryActionValidator,
     async (c) => {
       const id = c.req.param("id");
-      const input = c.req.valid("json");
+      const { adminNote } = c.req.valid("json");
 
       try {
-        await approveRecoveryRequest(id, input?.adminNote);
+        await approveRecoveryRequest(id, adminNote);
         return c.json({ success: true, message: "Recovery request approved" });
       } catch (error) {
         const message =
@@ -134,13 +128,13 @@ export const adminRoute = new Hono()
   // REJECT RECOVERY
   .patch(
     "/recovery-requests/:id/reject",
-    validate("json", recoveryActionSchema),
+    recoveryActionValidator,
     async (c) => {
       const id = c.req.param("id");
-      const input = c.req.valid("json");
+      const { adminNote } = c.req.valid("json");
 
       try {
-        await rejectRecoveryRequest(id, input?.adminNote);
+        await rejectRecoveryRequest(id, adminNote);
         return c.json({ success: true, message: "Recovery request rejected" });
       } catch (error) {
         return c.json(

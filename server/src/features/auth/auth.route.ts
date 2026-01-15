@@ -1,16 +1,14 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
 import prisma from "../../lib/db";
 import { auth } from "../../lib/auth";
-import { validationHook } from "../../core/validation";
 import {
-  loginSchema,
-  signupSchema,
-  forgotPasswordSchema,
-  resetPasswordSchema,
-  googleAuthSchema,
-  recoveryRequestSchema,
-  emailQuerySchema,
+  loginValidator,
+  signupValidator,
+  forgotPasswordValidator,
+  resetPasswordValidator,
+  googleAuthValidator,
+  recoveryRequestValidator,
+  emailQueryValidator,
 } from "./auth.schema";
 import {
   checkDeviceBinding,
@@ -19,14 +17,10 @@ import {
   getLatestRecoveryStatus,
 } from "./auth.service";
 
-// Helper to create validator with hook
-const validate = (target: "json" | "query", schema: any) =>
-  zValidator(target, schema, validationHook as any);
-
 // ============ AUTH ROUTES ============
 export const authRoute = new Hono()
   // ============ LOGIN ============
-  .post("/login", validate("json", loginSchema), async (c) => {
+  .post("/login", loginValidator, async (c) => {
     const { email, password, deviceId } = c.req.valid("json");
 
     try {
@@ -78,7 +72,7 @@ export const authRoute = new Hono()
   })
 
   // ============ SIGNUP ============
-  .post("/signup", validate("json", signupSchema), async (c) => {
+  .post("/signup", signupValidator, async (c) => {
     const { email, password, name } = c.req.valid("json");
 
     try {
@@ -121,16 +115,12 @@ export const authRoute = new Hono()
   })
 
   // ============ GOOGLE LOGIN ============
-  .post("/google", validate("json", googleAuthSchema), async (c) => {
+  .post("/google", googleAuthValidator, async (c) => {
     const { idToken, deviceId } = c.req.valid("json");
 
     try {
       // For mobile apps, the client already has the Google ID token
       // Better-auth handles Google OAuth via its built-in routes
-      // This endpoint is for mobile clients that use Google Sign-In SDK
-
-      // Redirect to better-auth's Google OAuth handler
-      // The actual Google auth is handled by better-auth at /auth/signin/google
       return c.json({
         success: true,
         message: "Use /api/auth/signin/google for Google authentication",
@@ -149,38 +139,31 @@ export const authRoute = new Hono()
   })
 
   // ============ FORGOT PASSWORD ============
-  .post(
-    "/forgot-password",
-    validate("json", forgotPasswordSchema),
-    async (c) => {
-      const { email } = c.req.valid("json");
+  .post("/forgot-password", forgotPasswordValidator, async (c) => {
+    const { email } = c.req.valid("json");
 
-      try {
-        await auth.api.requestPasswordReset({
-          body: { email, redirectTo: "/reset-password" },
-        });
-      } catch (error) {
-        console.error("Forgot password error:", error);
-      }
-
-      // Always return success to prevent email enumeration
-      return c.json({
-        success: true,
-        message: "If email exists, a reset link will be sent",
+    try {
+      await auth.api.requestPasswordReset({
+        body: { email, redirectTo: "/reset-password" },
       });
+    } catch (error) {
+      console.error("Forgot password error:", error);
     }
-  )
+
+    // Always return success to prevent email enumeration
+    return c.json({
+      success: true,
+      message: "If email exists, a reset link will be sent",
+    });
+  })
 
   // ============ RESET PASSWORD ============
-  .post("/reset-password", validate("json", resetPasswordSchema), async (c) => {
+  .post("/reset-password", resetPasswordValidator, async (c) => {
     const { token, newPassword } = c.req.valid("json");
 
     try {
       await auth.api.resetPassword({ body: { token, newPassword } });
-      return c.json({
-        success: true,
-        message: "Password reset successfully",
-      });
+      return c.json({ success: true, message: "Password reset successfully" });
     } catch (error) {
       console.error("Reset password error:", error);
       return c.json(
@@ -191,54 +174,50 @@ export const authRoute = new Hono()
   })
 
   // ============ RECOVERY REQUEST ============
-  .post(
-    "/recovery/request",
-    validate("json", recoveryRequestSchema),
-    async (c) => {
-      try {
-        const { email, message, deviceId } = c.req.valid("json");
+  .post("/recovery/request", recoveryRequestValidator, async (c) => {
+    try {
+      const { email, message, deviceId } = c.req.valid("json");
 
-        const user = await prisma.user.findUnique({
-          where: { email },
-          select: { id: true, isBanned: true },
-        });
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true, isBanned: true },
+      });
 
-        if (!user) {
-          return c.json({ success: false, message: "User not found" }, 404);
-        }
-
-        if (!user.isBanned) {
-          return c.json(
-            { success: false, message: "Account is not banned" },
-            400
-          );
-        }
-
-        const request = await createRecoveryRequest(user.id, {
-          message,
-          deviceId,
-        });
-
-        return c.json(
-          {
-            success: true,
-            message: "Recovery request submitted successfully",
-            data: { requestId: request.id },
-          },
-          201
-        );
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to submit recovery request";
-        return c.json({ success: false, message: errorMessage }, 400);
+      if (!user) {
+        return c.json({ success: false, message: "User not found" }, 404);
       }
+
+      if (!user.isBanned) {
+        return c.json(
+          { success: false, message: "Account is not banned" },
+          400
+        );
+      }
+
+      const request = await createRecoveryRequest(user.id, {
+        message,
+        deviceId,
+      });
+
+      return c.json(
+        {
+          success: true,
+          message: "Recovery request submitted successfully",
+          data: { requestId: request.id },
+        },
+        201
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to submit recovery request";
+      return c.json({ success: false, message: errorMessage }, 400);
     }
-  )
+  })
 
   // ============ RECOVERY STATUS ============
-  .get("/recovery/status", validate("query", emailQuerySchema), async (c) => {
+  .get("/recovery/status", emailQueryValidator, async (c) => {
     const { email } = c.req.valid("query");
 
     const user = await prisma.user.findUnique({

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
+import { validationHook } from "../../lib/zod";
 
 // ============ REUSABLE SCHEMAS ============
 const passwordSchema = z
@@ -23,6 +25,23 @@ export const banUserSchema = z.object({
 export const recoveryActionSchema = z.object({
   adminNote: z.string().optional(),
 });
+
+// ============ VALIDATORS ============
+export const createUserValidator = zValidator(
+  "json",
+  createUserSchema,
+  validationHook
+);
+export const banUserValidator = zValidator(
+  "json",
+  banUserSchema,
+  validationHook
+);
+export const recoveryActionValidator = zValidator(
+  "json",
+  recoveryActionSchema,
+  validationHook
+);
 
 // ============ TYPES ============
 export type CreateUserInput = z.infer<typeof createUserSchema>;
