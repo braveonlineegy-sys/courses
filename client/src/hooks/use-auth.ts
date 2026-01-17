@@ -1,56 +1,43 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { client } from "../lib/client";
+import { AUTH_KEYS } from "@/constants/auth-keys";
+import { client } from "@/lib/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
-
-// Type keys for queries
-export const AUTH_KEYS = {
-  me: ["auth", "me"] as const,
-};
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  // 1. Fetch current session
-  const {
-    data: sessionData,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data: session, isLoading } = useQuery({
     queryKey: AUTH_KEYS.me,
     queryFn: async () => {
       const res = await client.api.auth.custom.me.$get();
-      if (!res.ok) {
-        return null;
-      }
-      return await res.json();
+      if (!res.ok) return null;
+      return res.json();
     },
-    retry: false, // Don't retry if 401
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    retry: false,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
-  const user = sessionData?.user;
-  const isAuthenticated = !!user;
+  const user = session?.user ?? null;
   const role = user?.role;
+  const isAuthenticated = !!user;
 
-  // 2. Login Mutation
   const loginMutation = useMutation({
-    mutationFn: async (vars: any) => {
+    mutationFn: async (vars: LoginVars) => {
       const res = await client.api.auth.custom.login.$post({ json: vars });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error((err as any).message || "Login failed");
+        throw new Error(err?.message || "Login failed");
       }
-      return await res.json();
+      return true;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: AUTH_KEYS.me });
-      // Router invalidation is handled by TanStack Router usually, or we force reload
-      router.invalidate();
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: AUTH_KEYS.me });
+      router.navigate({ to: "/dashboard" });
     },
   });
 
-  // 3. Logout Mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
       const res = await client.api.auth.custom.logout.$post();
@@ -58,30 +45,24 @@ export const useAuth = () => {
     },
     onSuccess: () => {
       queryClient.setQueryData(AUTH_KEYS.me, null);
-      queryClient.invalidateQueries({ queryKey: AUTH_KEYS.me });
-      router.invalidate();
-      router.navigate({ to: "/" }); // create login route usage?
+      router.navigate({ to: "/login" });
     },
   });
 
-  // 4. Role Helpers
-  const isAdmin = role === "ADMIN";
-  const isTeacher = role === "TEACHER";
-  const isStudent = role === "USER";
-
   return {
     user,
+    role,
     isAuthenticated,
     isLoading,
-    role,
-    isAdmin,
-    isTeacher,
-    isStudent,
-    login: loginMutation.mutate,
-    loginAsync: loginMutation.mutateAsync,
+
+    isAdmin: role === "ADMIN",
+    isTeacher: role === "TEACHER",
+    isStudent: role === "USER",
+
+    login: loginMutation.mutateAsync,
+    logout: logoutMutation.mutateAsync,
+
     isLoggingIn: loginMutation.isPending,
-    logout: logoutMutation.mutate,
-    logoutAsync: logoutMutation.mutateAsync,
     isLoggingOut: logoutMutation.isPending,
   };
 };
