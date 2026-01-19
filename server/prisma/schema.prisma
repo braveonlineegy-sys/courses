@@ -12,7 +12,7 @@ datasource db {
 enum UserRole {
   ADMIN
   TEACHER
-  STUDENT
+  USER
 }
 
 model User {
@@ -24,7 +24,7 @@ model User {
   emailVerified Boolean   @default(false)
   image         String?
  phoneNumber         String? @unique
-  role          UserRole    @default(STUDENT)
+  role          UserRole    @default(USER)
   deviceId      String?
   isBanned      Boolean   @default(false)
   banReason     String?   
