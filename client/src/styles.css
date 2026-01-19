@@ -187,8 +187,8 @@ code {
   @apply text-muted-foreground;
 }
 
-/* ============ Login Page ============ */
-.login-page {
+/* ============ Auth Pages ============ */
+.auth-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -196,14 +196,18 @@ code {
   @apply bg-background;
 }
 
-.login-container {
+.auth-container {
   width: 100%;
-  max-width: 400px;
-  @apply bg-card p-8 rounded-lg border shadow-lg;
+  max-width: 420px;
+  @apply bg-card p-8 rounded-xl border shadow-lg;
 }
 
-.login-container h1 {
-  @apply text-2xl font-bold text-center mb-6;
+.auth-container h1 {
+  @apply text-2xl font-bold text-center mb-2;
+}
+
+.auth-subtitle {
+  @apply text-muted-foreground text-center mb-6 text-sm;
 }
 
 .form-group {
@@ -215,18 +219,108 @@ code {
 }
 
 .form-group input {
-  @apply w-full px-3 py-2 border rounded-md bg-input;
+  @apply w-full px-4 py-3 border rounded-lg bg-input text-foreground;
+  transition: all 0.2s ease;
+}
+
+.form-group input::placeholder {
+  @apply text-muted-foreground;
 }
 
 .form-group input:focus {
-  @apply outline-none ring-2 ring-ring;
+  @apply outline-none ring-2 ring-ring border-transparent;
 }
 
-.login-container button[type="submit"] {
-  @apply w-full py-2 px-4 bg-primary text-primary-foreground rounded-md font-medium;
-  @apply hover:opacity-90 transition-opacity disabled:opacity-50;
+.form-group input:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.form-options {
+  @apply flex justify-end mb-4;
+}
+
+.forgot-password-link {
+  @apply text-sm text-primary hover:underline;
+}
+
+.auth-container button[type="submit"] {
+  @apply w-full py-3 px-4 bg-primary text-primary-foreground rounded-lg font-medium;
+  @apply hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.auth-footer {
+  @apply mt-6 text-center;
+}
+
+.auth-link {
+  @apply text-sm text-primary hover:underline;
 }
 
 .error-message {
-  @apply bg-destructive/10 text-destructive p-3 rounded-md mb-4 text-sm;
+  @apply bg-destructive/10 text-destructive p-3 rounded-lg mb-4 text-sm;
+}
+
+.success-message {
+  @apply bg-green-500/10 text-green-600 dark:text-green-400 p-4 rounded-lg text-center;
+}
+
+.success-message p {
+  @apply mb-4;
+}
+
+/* Password Requirements */
+.password-requirements {
+  @apply mb-4 p-3 bg-muted rounded-lg text-sm;
+}
+
+.requirements-title {
+  @apply font-medium mb-2 text-foreground;
+}
+
+.password-requirements ul {
+  @apply list-none p-0 m-0 space-y-1;
+}
+
+.password-requirements li {
+  @apply text-muted-foreground flex items-center gap-2;
+}
+
+.password-requirements li::before {
+  content: "✗";
+  @apply text-destructive;
+}
+
+.password-requirements li.valid {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.password-requirements li.valid::before {
+  content: "✓";
+  @apply text-green-600 dark:text-green-400;
+}
+
+/* Loading */
+.loading-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  @apply text-muted-foreground;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

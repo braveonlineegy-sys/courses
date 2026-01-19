@@ -1,21 +1,13 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { client } from "../lib/client";
+import { requireRole } from "@/lib/auth";
 
 export const Route = createFileRoute("/teacher")({
   beforeLoad: async () => {
-    try {
-      const res = await client.api.auth.custom.me.$get();
-      if (!res.ok) {
-        throw redirect({ to: "/login" });
-      }
-      const data = await res.json();
-      if (data.user?.role !== "TEACHER") {
-        throw redirect({ to: "/login" });
-      }
-      return { user: data.user };
-    } catch {
+    const session = await requireRole("TEACHER");
+    if (!session) {
       throw redirect({ to: "/login" });
     }
+    return { user: session.user };
   },
   pendingComponent: () => (
     <div className="loading-container">

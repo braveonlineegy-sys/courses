@@ -1,6 +1,27 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, type LoginInput } from "shared";
+
 import { useAuth } from "../hooks/use-auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -9,11 +30,17 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { login, isLoggingIn, isAuthenticated, isLoading, role } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Redirect if already authenticated (in useEffect to avoid render-time navigation)
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       if (role === "ADMIN") {
@@ -29,75 +56,109 @@ function LoginPage() {
   // Show loading while checking auth
   if (isLoading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner" />
-        <p>Loading...</p>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: LoginInput) => {
     setError("");
 
     try {
-      await login(
-        { email, password },
-        {
-          onSuccess: (data: any) => {
-            // better-auth returns { user: {...}, token: "..." }
-            const userRole = data?.user?.role;
-            if (userRole === "ADMIN") {
-              navigate({ to: "/admin" });
-            } else if (userRole === "TEACHER") {
-              navigate({ to: "/teacher" });
-            } else {
-              navigate({ to: "/" });
-            }
-          },
-          onError: (err: any) => {
-            setError(err.message || "Login failed");
-          },
+      await login(values, {
+        onSuccess: (data: any) => {
+          const userRole = data?.user?.role;
+          if (userRole === "ADMIN") {
+            navigate({ to: "/admin" });
+          } else if (userRole === "TEACHER") {
+            navigate({ to: "/teacher" });
+          } else {
+            navigate({ to: "/" });
+          }
         },
-      );
+        onError: (err: any) => {
+          setError(err.message || "Login failed");
+        },
+      });
     } catch (err: any) {
       setError(err.message || "Login failed");
     }
   };
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <h1>Login</h1>
-        <form onSubmit={handleSubmit}>
-          {error && <div className="error-message">{error}</div>}
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoggingIn}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoggingIn}
-            />
-          </div>
-          <button type="submit" disabled={isLoggingIn}>
-            {isLoggingIn ? "Logging in..." : "Login"}
-          </button>
-        </form>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+          <CardDescription>Sign in to your account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {error && (
+                <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Enter your email"
+                        disabled={isLoggingIn}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Enter your password"
+                        disabled={isLoggingIn}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-primary hover:underline"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoggingIn}>
+                {isLoggingIn ? "Signing in..." : "Sign In"}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

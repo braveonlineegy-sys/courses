@@ -1,6 +1,6 @@
 import { HTTPException } from "hono/http-exception";
 import type { Hono } from "hono";
-import type { ApiResponse } from "./response";
+import type { ApiResponse } from "shared";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const applyOnError = (app: Hono<any, any, any>) => {

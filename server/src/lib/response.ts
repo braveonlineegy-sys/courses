@@ -1,20 +1,12 @@
 import type { Context } from "hono";
-
-// Standard API Response Types
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  message: string;
-  data: T | null;
-  error: string | null;
-  statusCode: number;
-}
+import type { ApiResponse, ApiSuccessResponse, ApiErrorResponse } from "shared";
 
 // Success response helper
 export const successResponse = <T>(
   c: Context,
   data: T,
   message = "Success",
-  statusCode = 200
+  statusCode = 200,
 ) => {
   const response: ApiResponse<T> = {
     success: true,
@@ -31,7 +23,7 @@ export const errorResponse = (
   c: Context,
   error: string,
   statusCode = 400,
-  message = "Error"
+  message = "Error",
 ) => {
   const response: ApiResponse<null> = {
     success: false,
@@ -62,7 +54,7 @@ export const badRequestResponse = (c: Context, error: string) => {
 
 export const serverErrorResponse = (
   c: Context,
-  error = "Internal server error"
+  error = "Internal server error",
 ) => {
   return errorResponse(c, error, 500, "Server error");
 };
@@ -82,7 +74,7 @@ export const paginatedResponse = <T>(
   total: number,
   page: number,
   limit: number,
-  message = "Success"
+  message = "Success",
 ) => {
   const totalPages = Math.ceil(total / limit);
   const data: PaginatedData<T> = {
