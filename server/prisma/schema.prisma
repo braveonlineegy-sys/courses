@@ -31,12 +31,30 @@ model User {
 
  lessonProgress    LessonProgress[]
  quizAttempts      QuizAttempt[]
+ payments CoursePayment[]
+ notifications Notification[]
+   courseJoinRequests CourseJoinRequest[]
+
+
 levelId String?
   level   Level? @relation(fields: [levelId], references: [id])
+
+
 
   sessions         Session[]
   accounts         Account[]
   recoveryRequests RecoveryRequest[]
+  advertisements   Advertisement[]
+  coursesCreated Course[]
+  usedQRCodes QRCode[]
+  courseAccesses CourseAccess[]
+  
+  chatMemberships ChatMember[]
+  sentMessages Message[]
+  
+
+
+
 
   @@map("user")
 }
@@ -155,6 +173,7 @@ model Level {
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   courses      Course[]
   users        User[]
+  advertisements Advertisement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -171,11 +190,12 @@ model Advertisement {
   endAt     DateTime
   isActive  Boolean  @default(true)
 
-  departmentId String?
+
+  levelId String?
 teacherId    String?
 courseId     String?
 
-department Department? @relation(fields: [departmentId], references: [id])
+level Level? @relation(fields: [levelId], references: [id])
 teacher    User?       @relation(fields: [teacherId], references: [id])
 course     Course?     @relation(fields: [courseId], references: [id])
 
@@ -213,18 +233,91 @@ model Course {
   term CourseTerm @default(REGULAR)
 
   status CourseStatus @default(PUBLISHED)
+  cashNumbers String[]
+    joinRequests CourseJoinRequest[]
+
+  instapayUsername String?
+  
+
+
 
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  userId      String
+ teacherId String
+  teacher   User @relation(fields: [teacherId], references: [id])
+
   pdfLink      String?
   levelId String?
   level   Level? @relation(fields: [levelId], references: [id], onDelete: Cascade)
   chapters    Chapter[]
   quizzes     Quiz[]
+  payments CoursePayment[]
+
+  advertisements Advertisement[]
+  qrBatches QRBatch[]
+    accesses CourseAccess[]
+
+    //TODO: CHANGE IT TO 1 TO 1 AND REMOVE PERSONAL CHAT
+      chatRooms ChatRoom[]
+
+
 
   @@map("course")
 }
+
+
+model CourseJoinRequest {
+  id        String @id @default(cuid())
+  userId    String
+  courseId  String
+
+  status    RequestStatus @default(PENDING)
+  note      String?
+
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+
+enum AccessMethod {
+  
+  QR
+  PAYMENT
+  REQUEST
+}
+
+model CourseAccess {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+
+  startsAt  DateTime @default(now())
+  expiresAt DateTime
+  isActive  Boolean  @default(true)
+
+  grantedBy AccessMethod 
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+  @@index([userId, isActive])
+}
+
+
 
 model Chapter {
   id       String @id @default(uuid())
@@ -248,8 +341,8 @@ model Lesson {
   title        String
   position     Int //For sorting
   description  String?
-  thumbnailLink String?
-  videoLink     String? //youtube link
+  thumbnail    String?
+  video        String? //youtube link
   pdfLink       String?
   isFree       Boolean @default(false)
 
@@ -338,7 +431,7 @@ model Question {
   section   QuizSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   position  Int
   text      String
-  imageLink  String?
+  image  String?
 
   answers Answer[]
 
@@ -358,7 +451,7 @@ model Answer {
   id         String   @id @default(uuid())
   questionId String
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  imageLink   String?
+  image   String?
 
   text      String
   isCorrect Boolean @default(false)
@@ -400,3 +493,133 @@ model QuizAnswer {
   @@map("quiz_answer")
 }
 
+
+
+model QRBatch {
+  id        String @id @default(cuid())
+  courseId  String
+
+  totalCodes Int          // عدد QR اللي اتطبعوا
+  validDays  Int          // مدة الكورس بعد التفعيل
+  expiresAt  DateTime     // آخر تاريخ ينفع يتفعل فيه QR
+
+  course Course @relation(fields: [courseId], references: [id])
+  qrCodes QRCode[]
+
+  createdAt DateTime @default(now())
+}
+
+
+
+model QRCode {
+  id        String @id @default(cuid())
+  code      String @unique
+
+  batchId  String
+  batch    QRBatch @relation(fields: [batchId], references: [id])
+
+  isUsed   Boolean  @default(false)
+  usedById String?
+  usedAt   DateTime?
+
+  usedBy User? @relation(fields: [usedById], references: [id])
+}
+
+
+
+enum PaymentMethod {
+  VODAFONE_CASH
+  INSTAPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model CoursePayment {
+  id        String @id @default(cuid())
+  userId    String
+  courseId  String
+
+  method    PaymentMethod
+  amount    Int
+  phoneSender String        // رقم الموبايل اللي اتحول منه
+  imageProof     String        // صورة التحويل
+
+  status    PaymentStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+}
+
+
+
+
+enum ChatType {
+  COURSE      // طلاب + مدرس
+  SUPPORT     // طالب + دعم
+
+  //TODO:
+  PERSONAL    // طالب + مدرس
+}
+
+model ChatRoom {
+  id       String @id @default(cuid())
+
+  type     ChatType
+
+  // COURSE / PERSONAL
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id])
+
+  messages Message[]
+  members  ChatMember[]
+
+  createdAt DateTime @default(now())
+}
+
+model ChatMember {
+  id        String @id @default(cuid())
+  roomId    String
+  userId    String
+
+  room ChatRoom @relation(fields: [roomId], references: [id])
+  user User     @relation(fields: [userId], references: [id])
+
+  @@unique([roomId, userId])
+}
+
+
+model Message {
+  id        String @id @default(cuid())
+  roomId    String
+  senderId  String
+  content   String
+
+  createdAt DateTime @default(now())
+
+  room   ChatRoom @relation(fields: [roomId], references: [id])
+  sender User     @relation(fields: [senderId], references: [id])
+}
+
+
+
+model Notification {
+  id        String @id @default(cuid())
+  userId    String
+user User @relation(fields: [userId], references: [id])
+
+  title     String
+  body      String
+  type      String
+  isRead    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+//
