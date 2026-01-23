@@ -1,12 +1,14 @@
 import { Hono } from "hono";
 import { Scalar } from "@scalar/hono-api-reference";
 import { logger } from "hono/logger";
+import { openApiSpec } from "./lib/openapi";
 
 import { applyOnError } from "./lib/on-error";
 import { CorsMiddleware } from "./middlewares/cors.middleware";
 import { auth } from "./lib/auth";
 import { adminRoute } from "./features/admin/admin.route";
 import { authRoute } from "./features/auth/auth.route";
+import universityRoute from "./features/university/university.route";
 import env from "./lib/config";
 
 // Create base app
@@ -27,10 +29,12 @@ const routes = app
   .on(["POST", "GET"], "/auth/*", (c) => auth.handler(c.req.raw))
 
   // Admin routes
-  .route("/admin", adminRoute);
+  .route("/admin", adminRoute)
+
+  // University routes
+  .route("/university", universityRoute);
 
 // ============ OPENAPI DOCS ============
-import { openApiSpec } from "./lib/openapi";
 
 app.get("/openapi.json", (c) => {
   const spec = {
@@ -48,7 +52,7 @@ app.get(
     url: "/api/openapi.json",
     pageTitle: "Courses API Documentation",
     theme: "purple",
-  })
+  }),
 );
 
 // Apply error handler

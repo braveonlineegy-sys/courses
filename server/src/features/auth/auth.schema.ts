@@ -1,5 +1,14 @@
 import { zValidator } from "@hono/zod-validator";
 import { validationHook } from "../../lib/zod";
+import {
+  emailQuerySchema,
+  forgotPasswordSchema,
+  googleAuthSchema,
+  loginSchema,
+  recoveryRequestSchema,
+  resetPasswordSchema,
+  signupSchema,
+} from "shared";
 
 // Re-export schemas and types from shared
 export {
@@ -17,16 +26,6 @@ export {
   type ResetPasswordInput,
   type GoogleAuthInput,
   type RecoveryRequestInput,
-} from "shared";
-
-import {
-  loginSchema,
-  signupSchema,
-  forgotPasswordSchema,
-  resetPasswordSchema,
-  googleAuthSchema,
-  recoveryRequestSchema,
-  emailQuerySchema,
 } from "shared";
 
 // ============ VALIDATORS ============

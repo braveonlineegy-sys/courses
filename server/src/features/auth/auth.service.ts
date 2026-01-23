@@ -5,7 +5,7 @@ import { RecoveryStatus } from "../../lib/constants";
 export const checkDeviceBinding = async (userId: string, deviceId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { deviceId: true },
+    select: { deviceId: true, email: true },
   });
 
   if (!user) {
@@ -19,9 +19,21 @@ export const checkDeviceBinding = async (userId: string, deviceId: string) => {
 
   // Check if device matches
   if (user.deviceId !== deviceId) {
+    // Ban the user for trying to login from a different device
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        isBanned: true,
+        banReason:
+          "تم حظر حسابك بسبب محاولة تسجيل الدخول من جهاز مختلف. يرجى تقديم طلب استرداد لفك الحظر.",
+      },
+    });
+
     return {
       allowed: false,
-      reason: "This account is bound to another device",
+      reason:
+        "تم حظر حسابك لمحاولة تسجيل الدخول من جهاز مختلف. يرجى تقديم طلب استرداد.",
+      banned: true,
     };
   }
 
@@ -43,7 +55,7 @@ interface RecoveryRequestInput {
 
 export const createRecoveryRequest = async (
   userId: string,
-  input: RecoveryRequestInput
+  input: RecoveryRequestInput,
 ) => {
   // Check if user already has a pending request
   const existingRequest = await prisma.recoveryRequest.findFirst({

@@ -97,12 +97,13 @@ export const unbanUser = async (userId: string) => {
   });
 };
 
-// Update user's device ID (after recovery approval)
-export const updateUserDevice = async (userId: string, newDeviceId: string) => {
+// Clear user's device binding (after recovery approval)
+// User can then login from any device (old or new) - first login binds the device
+export const clearUserDevice = async (userId: string) => {
   return prisma.user.update({
     where: { id: userId },
     data: {
-      deviceId: newDeviceId,
+      deviceId: null, // Clear device binding
       isBanned: false,
       banReason: null,
     },
@@ -130,7 +131,7 @@ export const getPendingRecoveryRequests = async () => {
 // Approve recovery request
 export const approveRecoveryRequest = async (
   requestId: string,
-  adminNote?: string
+  adminNote?: string,
 ) => {
   const request = await prisma.recoveryRequest.findUnique({
     where: { id: requestId },
@@ -149,8 +150,9 @@ export const approveRecoveryRequest = async (
     },
   });
 
-  // Update user: set new device, unban
-  await updateUserDevice(request.userId, request.newDeviceId);
+  // Clear device binding and unban user
+  // User can now login from any device - first login will bind that device
+  await clearUserDevice(request.userId);
 
   return { success: true };
 };
@@ -158,7 +160,7 @@ export const approveRecoveryRequest = async (
 // Reject recovery request
 export const rejectRecoveryRequest = async (
   requestId: string,
-  adminNote?: string
+  adminNote?: string,
 ) => {
   return prisma.recoveryRequest.update({
     where: { id: requestId },

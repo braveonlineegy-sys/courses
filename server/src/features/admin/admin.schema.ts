@@ -12,7 +12,7 @@ const passwordSchema = z
 
 // ============ ADMIN SCHEMAS ============
 export const createUserSchema = z.object({
-  email: z.string().email("Invalid email"),
+  email: z.email("Invalid email"),
   name: z.string().min(2, "Name must be at least 2 characters"),
   password: passwordSchema,
   role: z.enum(["TEACHER", "USER"]),

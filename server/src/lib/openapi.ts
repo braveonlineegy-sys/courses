@@ -312,6 +312,116 @@ export const openApiSpec = {
         responses: { 200: { description: "Request rejected" } },
       },
     },
+    // ============ UNIVERSITY ROUTES ============
+    "/api/university": {
+      get: {
+        tags: ["University"],
+        summary: "Get all universities",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 10 },
+          },
+          {
+            name: "search",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+          },
+        ],
+        responses: { 200: { description: "List of universities" } },
+      },
+      post: {
+        tags: ["University"],
+        summary: "Create a new university (Admin only)",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["name"],
+                properties: {
+                  name: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 201: { description: "University created" } },
+      },
+    },
+    "/api/university/{id}": {
+      get: {
+        tags: ["University"],
+        summary: "Get university by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: { description: "University details" },
+          404: { description: "University not found" },
+        },
+      },
+      patch: {
+        tags: ["University"],
+        summary: "Update university (Admin only)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  isActive: { type: "boolean" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "University updated" } },
+      },
+      delete: {
+        tags: ["University"],
+        summary: "Delete university (Admin only)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "University deleted" } },
+      },
+    },
   },
   components: {
     securitySchemes: {

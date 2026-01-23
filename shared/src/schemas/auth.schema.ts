@@ -10,7 +10,7 @@ export const passwordSchema = z
 
 // ============ AUTH SCHEMAS ============
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email"),
+  email: z.email("Invalid email"),
   password: z.string().min(1, "Password is required"),
   deviceId: z.string().optional(),
 });
@@ -22,7 +22,7 @@ export const signupSchema = z.object({
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Invalid email"),
+  email: z.email("Invalid email"),
 });
 
 export const resetPasswordSchema = z.object({
@@ -43,7 +43,7 @@ export const recoveryRequestSchema = z.object({
 });
 
 export const emailQuerySchema = z.object({
-  email: z.string().email("Invalid email"),
+  email: z.email("Invalid email"),
 });
 
 // ============ TYPES ============
