@@ -16,8 +16,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ModeToggle } from "./mode-toggle";
 
-export function Header() {
+export function Navbar() {
   const { user, isAuthenticated, isAdmin, isTeacher, logout, isLoggingOut } =
     useAuth();
 
@@ -32,13 +33,10 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-6">
-          <Link
-            to="/products"
-            className="text-sm font-medium hover:text-primary transition-colors"
-          >
-            Products
-          </Link>
-
+      
+      <ModeToggle />
+      
+      
           {isAuthenticated ? (
             <div className="flex items-center gap-2">
               {showDropdown && (

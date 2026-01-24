@@ -2,36 +2,48 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/client";
 import { toast } from "sonner";
 
+async function getAllUniversities(page = 1, search = "") {
+  const res = await client.api.university.$get({
+    query: { page, limit: 10, search },
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+
+    let errorMessage = "حدث خطأ غير متوقع";
+
+    if ("message" in err) {
+      errorMessage = err.message;
+    } else if (
+      "error" in err &&
+      typeof err.error === "object" &&
+      "formErrors" in err.error
+    ) {
+      // استخراج أخطاء Zod لو وجدت
+      errorMessage = err.error.formErrors[0] || "بيانات غير صالحة";
+    }
+
+    throw new Error(errorMessage);
+  }
+  return res.json();
+}
+
+type UniversityResponseType = Awaited<ReturnType<typeof getAllUniversities>>;
+
+export type UniversityType = Extract<
+  UniversityResponseType,
+  { success: true }
+>["data"]["items"][number];
+
+
+
 export function useUniversity(page = 1, search = "") {
   const queryClient = useQueryClient();
 
   // 1. Fetch All Universities
   const universitiesQuery = useQuery({
     queryKey: ["universities", page, search],
-    queryFn: async () => {
-      const res = await client.api.university.$get({
-        query: { page, limit: 10, search },
-      });
-      if (!res.ok) {
-        const err = await res.json();
-
-        let errorMessage = "حدث خطأ غير متوقع";
-
-        if ("message" in err) {
-          errorMessage = err.message;
-        } else if (
-          "error" in err &&
-          typeof err.error === "object" &&
-          "formErrors" in err.error
-        ) {
-          // استخراج أخطاء Zod لو وجدت
-          errorMessage = err.error.formErrors[0] || "بيانات غير صالحة";
-        }
-
-        throw new Error(errorMessage);
-      }
-      return res.json();
-    },
+    queryFn: () => getAllUniversities(page, search),
   });
 
   // 2. Create University

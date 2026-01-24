@@ -24,12 +24,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { University } from "@/types/university.types";
+import { UniversityType } from "@/hooks/use-university";
 
 interface UniversityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  university?: University | null;
+  university?: UniversityType | null;
 }
 
 export function UniversityDialog({
@@ -42,17 +42,16 @@ export function UniversityDialog({
 
   const form = useForm({
     resolver: zodResolver(isEditing ? updateUniversity : createUniversity),
-    defaultValues: {
-      name: "",
-      isActive: true,
-    },
+    defaultValues: isEditing
+      ? {
+          name: university?.name,
+          isActive: university?.isActive,
+        }
+      : {
+          name: "",
+          isActive: true,
+        },
   });
-
-  useEffect(() => {
-    if (open) {
-      form.reset(university || { name: "", isActive: true });
-    }
-  }, [university, open, form]);
 
   const onSubmit = (values: any) => {
     const options = {
@@ -96,7 +95,7 @@ export function UniversityDialog({
                   <FormLabel>اسم الجامعة</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="مثلاً: جامعة الملك سعود"
+                      placeholder="جامعة القاهرة"
                       {...field}
                       className="text-right"
                     />
