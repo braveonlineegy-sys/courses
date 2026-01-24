@@ -1,12 +1,13 @@
 import type { Context } from "hono";
-import type { ApiResponse, ApiSuccessResponse, ApiErrorResponse } from "shared";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+import type { ApiResponse } from "shared";
 
 // Success response helper
 export const successResponse = <T>(
   c: Context,
   data: T,
   message = "Success",
-  statusCode = 200,
+  statusCode: ContentfulStatusCode = 200,
 ) => {
   const response: ApiResponse<T> = {
     success: true,
@@ -15,14 +16,14 @@ export const successResponse = <T>(
     error: null,
     statusCode,
   };
-  return c.json(response, statusCode as any);
+  return c.json(response, statusCode);
 };
 
 // Error response helper
 export const errorResponse = (
   c: Context,
   error: string,
-  statusCode = 400,
+  statusCode: ContentfulStatusCode = 400,
   message = "Error",
 ) => {
   const response: ApiResponse<null> = {
@@ -32,7 +33,7 @@ export const errorResponse = (
     error,
     statusCode,
   };
-  return c.json(response, statusCode as any);
+  return c.json(response, statusCode);
 };
 
 // Common error responses

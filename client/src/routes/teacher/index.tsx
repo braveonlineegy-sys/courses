@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { requireRole } from "@/lib/auth";
 
-export const Route = createFileRoute("/teacher")({
+export const Route = createFileRoute("/teacher/")({
   beforeLoad: async () => {
     const session = await requireRole("TEACHER");
     if (!session) {

@@ -14,8 +14,8 @@ export const createUniversity = async (data: CreateUniversity) => {
   });
 };
 
-export const updateUniversity = async (data: UpdateUniversity) => {
-  const { id, ...updates } = data;
+export const updateUniversity = async (data: UpdateUniversity, id: string) => {
+  const {  ...updates } = data;
   return prisma.university.update({
     where: {
       id,

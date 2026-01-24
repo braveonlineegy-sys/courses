@@ -28,10 +28,6 @@ const app = new Hono()
     const { page, limit, search } = c.req.valid("query");
     const result = await getAllUniversities({ page, limit, search });
 
-    if (result.total === 0) {
-      return notFoundResponse(c, "Universities not found");
-    }
-
     return paginatedResponse(
       c,
       result.items,
@@ -70,18 +66,13 @@ const app = new Hono()
     const id = c.req.param("id");
     const data = c.req.valid("json");
 
-    // Ensure ID matches or just use ID from param
-    if (data.id && data.id !== id) {
-      throw new HTTPException(400, { message: "ID mismatch" });
-    }
-
     // Check existence first if needed, or let Prisma throw
     const existing = await getUniversity({ id });
     if (!existing) {
       return notFoundResponse(c, "University not found");
     }
 
-    const updated = await updateUniversity({ ...data, id });
+    const updated = await updateUniversity(data, id);
     return successResponse(c, updated, "University updated successfully");
   })
 
