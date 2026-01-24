@@ -39,24 +39,24 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <QueryClientProvider client={queryClient}>
-          <Navbar />
-          <ThemeProvider defaultTheme="dark" storageKey="tanstack-ui-theme">
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+          <QueryClientProvider client={queryClient}>
+            <Navbar />
             {children}
-          </ThemeProvider>
-        </QueryClientProvider>
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
-        <Scripts />
+          </QueryClientProvider>
+          <TanStackDevtools
+            config={{
+              position: "bottom-right",
+            }}
+            plugins={[
+              {
+                name: "Tanstack Router",
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+          <Scripts />
+        </ThemeProvider>
       </body>
     </html>
   );
