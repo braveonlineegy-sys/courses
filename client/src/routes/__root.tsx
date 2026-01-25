@@ -34,9 +34,30 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const storageKey = "vite-ui-theme";
+                let theme = localStorage.getItem(storageKey) || "system";
+                
+                if (theme === "system") {
+                  theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+                }
+                
+                if (theme === "dark") {
+                  document.documentElement.classList.add("dark");
+                } else {
+                  document.documentElement.classList.remove("dark");
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
       </head>
       <body>
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">

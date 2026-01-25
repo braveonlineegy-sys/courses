@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -40,20 +41,30 @@ function LoginPage() {
     },
   });
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      if (role === "ADMIN") {
-        navigate({ to: "/admin" });
-      } else if (role === "TEACHER") {
-        navigate({ to: "/teacher" });
-      } else {
-        navigate({ to: "/" });
-      }
-    }
-  }, [isLoading, isAuthenticated, role, navigate]);
+  const onSubmit = async (values: LoginInput) => {
+    setError("");
 
-  // Show loading while checking auth
+    try {
+      await login(values, {
+        onSuccess: (data: any) => {
+          const userRole = data?.user?.role;
+          const to =
+            userRole === "ADMIN"
+              ? "/admin"
+              : userRole === "TEACHER"
+                ? "/teacher"
+                : "/";
+          navigate({ to, replace: true });
+        },
+        onError: (err: any) => {
+          setError(err.message || "Login failed");
+        },
+      });
+    } catch (err: any) {
+      setError(err.message || "Login failed");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -65,30 +76,12 @@ function LoginPage() {
     );
   }
 
-  const onSubmit = async (values: LoginInput) => {
-    setError("");
-
-    try {
-      await login(values, {
-        onSuccess: (data: any) => {
-          const userRole = data?.user?.role;
-          if (userRole === "ADMIN") {
-            navigate({ to: "/admin" });
-          } else if (userRole === "TEACHER") {
-            navigate({ to: "/teacher" });
-          } else {
-            navigate({ to: "/" });
-          }
-        },
-        onError: (err: any) => {
-          setError(err.message || "Login failed");
-        },
-      });
-    } catch (err: any) {
-      setError(err.message || "Login failed");
-    }
-  };
-
+  if (isAuthenticated) {
+    const to =
+      role === "ADMIN" ? "/admin" : role === "TEACHER" ? "/teacher" : "/";
+    navigate({ to, replace: true });
+    return <Loader2 className="animate-spin " />;
+  }
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">

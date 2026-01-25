@@ -1,29 +1,11 @@
-import {
-  Link,
-  Outlet,
-  createFileRoute,
-  redirect,
-} from "@tanstack/react-router";
-import { requireRole } from "@/lib/auth";
+import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/")({
-  beforeLoad: async () => {
-    const session = await requireRole("ADMIN");
-    if (!session) {
-      throw redirect({ to: "/login" });
-    }
-    return { user: session.user };
-  },
-  pendingComponent: () => (
-    <div className="loading-container p-8">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      <p className="mt-2 text-muted-foreground">Loading...</p>
-    </div>
-  ),
   component: AdminLayout,
 });
 
 function AdminLayout() {
+  const { user } = Route.useRouteContext();
   return (
     <div className="admin-layout flex h-screen bg-background">
       <aside className="admin-sidebar w-64 border-r p-4 bg-card">
