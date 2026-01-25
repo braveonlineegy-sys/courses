@@ -31,7 +31,7 @@ export const updateCollegeValidator = zValidator(
 );
 
 export const deleteCollegeValidator = zValidator(
-  "json",
+  "param",
   deleteCollegeSchema,
   validationHook,
 );
@@ -44,7 +44,7 @@ export const getCollegeValidator = zValidator(
 
 export const getCollegesValidator = zValidator(
   "query",
-  getCollegesSchema,
+  getCollegesSchema.merge(paginationSchema),
   validationHook,
 );
 

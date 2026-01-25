@@ -24,38 +24,29 @@ import { requireAdmin, requireAuth } from "../../middlewares/auth.middleware";
 
 const app = new Hono()
   // ============ LIST COLLEGES (with Pagination) ============
-  .get(
-    "/",
-    requireAuth,
-    paginationValidator,
-    getCollegesValidator,
-    async (c) => {
-      const { page, limit, search } = c.req.valid("query");
-      // getCollegesValidator works on query too, so we can access universityId if passed
-      const query = c.req.query();
-      const universityId = query.universityId;
+  .get("/", requireAuth, getCollegesValidator, async (c) => {
+    const { page, limit, search, universityId } = c.req.valid("query");
 
-      const result = await getAllColleges({
-        page,
-        limit,
-        search,
-        universityId: universityId,
-      });
+    const result = await getAllColleges({
+      page,
+      limit,
+      search,
+      universityId,
+    });
 
-      return paginatedResponse(
-        c,
-        result.items,
-        result.total,
-        result.page,
-        result.limit,
-        "Colleges retrieved successfully",
-      );
-    },
-  )
+    return paginatedResponse(
+      c,
+      result.items,
+      result.total,
+      result.page,
+      result.limit,
+      "Colleges retrieved successfully",
+    );
+  })
 
   // ============ GET COLLEGE BY ID ============
-  .get("/:id", requireAuth, async (c) => {
-    const id = c.req.param("id");
+  .get("/:id", requireAuth, getCollegeValidator, async (c) => {
+    const { id } = c.req.valid("param");
     if (!id) {
       return notFoundResponse(c, "College not found");
     }
@@ -91,8 +82,8 @@ const app = new Hono()
   })
 
   // ============ DELETE COLLEGE ============
-  .delete("/:id", requireAdmin, async (c) => {
-    const id = c.req.param("id");
+  .delete("/:id", requireAdmin, deleteCollegeValidator, async (c) => {
+    const { id } = c.req.valid("param");
 
     const existing = await getCollege({ id });
     if (!existing) {

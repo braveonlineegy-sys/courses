@@ -1,37 +1,45 @@
 import { useState } from "react";
+import { Link, useParams } from "@tanstack/react-router";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash, School } from "lucide-react";
-import { useUniversity } from "@/hooks/use-university";
-import { UniversityDialog } from "./UniversityDialog";
+import { Pencil, Trash, BookOpen } from "lucide-react";
+import { useCollege } from "@/hooks/use-college";
+import { CollegeDialog } from "./CollegeDialog";
 import { DeleteConfirmDialog } from "../DeleteConfirmDialog";
 
-export function UniversityItem({ university }: { university: any }) {
+export function CollegeCard({ college }: { college: any }) {
+  const params = useParams({ from: "/admin/universities/$universityId/" });
+  const universityId = (params as any).universityId; // Safety cast
+
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const { deleteMutation } = useUniversity();
+
+  // We pass universityId to useCollege to get the deleteMutation correctly bound if needed
+  // although mutation doesn't strictly depend on it for deleting by ID.
+  const { deleteMutation } = useCollege(1, "", universityId);
 
   return (
     <>
       <Card className="overflow-hidden transition-all hover:shadow-md border-muted/60 group cursor-pointer relative">
+        {/* Adjust the link to wherever departments are listed */}
         <Link
-          to="/admin/universities/$universityId"
-          params={{ universityId: university.id }}
+          to="/admin/universities/$universityId/colleges/$collegeId"
+          params={{ universityId, collegeId: college.id }}
           className="absolute inset-0 z-0"
         />
+
         <CardContent className="p-6 relative z-10 pointer-events-none">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/5 rounded-lg text-primary group-hover:bg-primary/10 transition-colors">
-                <School className="h-6 w-6" />
+              <div className="p-2 bg-secondary/10 rounded-lg text-secondary-foreground group-hover:bg-secondary/20 transition-colors">
+                <BookOpen className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="font-bold text-lg leading-tight">
-                  {university.name}
+                  {college.name}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  ID: {university.id.slice(0, 8)}...
+                  {college.university?.name}
                 </p>
               </div>
             </div>
@@ -44,7 +52,7 @@ export function UniversityItem({ university }: { university: any }) {
             size="sm"
             className="h-8 w-8 p-0"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent navigation
+              e.stopPropagation();
               setIsEditOpen(true);
             }}
           >
@@ -55,7 +63,7 @@ export function UniversityItem({ university }: { university: any }) {
             size="sm"
             className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent navigation
+              e.stopPropagation();
               setIsDeleteOpen(true);
             }}
           >
@@ -64,20 +72,21 @@ export function UniversityItem({ university }: { university: any }) {
         </CardFooter>
       </Card>
 
-      <UniversityDialog
+      <CollegeDialog
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
-        university={university}
+        college={college}
+        universityId={universityId}
       />
 
       <DeleteConfirmDialog
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
-        itemName={university.name}
+        itemName={college.name}
         isLoading={deleteMutation.isPending}
         requireTextConfirm={true}
         onConfirm={() => {
-          deleteMutation.mutate(university.id, {
+          deleteMutation.mutate(college.id, {
             onSuccess: () => setIsDeleteOpen(false),
           });
         }}
