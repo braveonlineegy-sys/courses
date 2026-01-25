@@ -11,6 +11,7 @@ import { authRoute } from "./features/auth/auth.route";
 import universityRoute from "./features/university/university.route";
 import departmentRoute from "./features/department/department.route";
 import collegeRoute from "./features/college/college.route";
+import levelRoute from "./features/level/level.route";
 import env from "./lib/config";
 
 // Create base app
@@ -40,7 +41,10 @@ const routes = app
   .route("/department", departmentRoute)
 
   // College routes
-  .route("/college", collegeRoute);
+  .route("/college", collegeRoute)
+
+  // Level routes
+  .route("/level", levelRoute);
 
 // ============ OPENAPI DOCS ============
 

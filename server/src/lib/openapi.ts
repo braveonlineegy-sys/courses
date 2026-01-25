@@ -16,6 +16,7 @@ export const openApiSpec = {
     { name: "University", description: "University management" },
     { name: "College", description: "College management" },
     { name: "Department", description: "Department management" },
+    { name: "Level", description: "Level management" },
   ],
   paths: {
     // ============ AUTH ROUTES ============
@@ -639,6 +640,108 @@ export const openApiSpec = {
           },
         ],
         responses: { 200: { description: "Department deleted" } },
+      },
+    },
+    // ============ LEVEL ROUTES ============
+    "/api/level": {
+      get: {
+        tags: ["Level"],
+        summary: "Get all levels",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "departmentId",
+            in: "query",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "List of levels" } },
+      },
+      post: {
+        tags: ["Level"],
+        summary: "Create a new level (Admin only)",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["name", "order", "departmentId"],
+                properties: {
+                  name: { type: "string" },
+                  order: { type: "integer" },
+                  departmentId: { type: "string", format: "uuid" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 201: { description: "Level created" } },
+      },
+    },
+    "/api/level/{id}": {
+      get: {
+        tags: ["Level"],
+        summary: "Get level by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: { description: "Level details" },
+          404: { description: "Level not found" },
+        },
+      },
+      patch: {
+        tags: ["Level"],
+        summary: "Update level (Admin only)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["name", "order", "departmentId"],
+                properties: {
+                  name: { type: "string" },
+                  order: { type: "integer" },
+                  departmentId: { type: "string", format: "uuid" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "Level updated" } },
+      },
+      delete: {
+        tags: ["Level"],
+        summary: "Delete level (Admin only)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "Level deleted" } },
       },
     },
   },

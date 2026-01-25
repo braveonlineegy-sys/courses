@@ -3,4 +3,4 @@ export * from "./university.zod";
 export * from "./department.zod";
 export * from "./common.zod";
 export * from "./college.zod";
-
+export * from "./level.zod";
