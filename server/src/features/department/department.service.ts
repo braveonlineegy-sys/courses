@@ -9,10 +9,7 @@ import type {
 
 export const createDepartment = async (data: CreateDepartment) => {
   return prisma.department.create({
-    data:{
-        name:data.name,
-        
-    },
+    data,
   });
 };
 
@@ -42,10 +39,10 @@ export const getDepartment = async ({ id }: GetDepartment) => {
   });
 };
 
-export const getDepartments = async ({ universityId }: GetDepartments) => {
+export const getDepartments = async ({ collegeId }: GetDepartments) => {
   return prisma.department.findMany({
     where: {
-      universityId,
+      collegeId,
     },
     orderBy: {
       name: "asc",

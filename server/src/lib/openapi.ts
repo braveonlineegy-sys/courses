@@ -13,6 +13,9 @@ export const openApiSpec = {
         "Authentication (login, signup, Google, password reset, recovery)",
     },
     { name: "Admin", description: "Admin-only user management endpoints" },
+    { name: "University", description: "University management" },
+    { name: "College", description: "College management" },
+    { name: "Department", description: "Department management" },
   ],
   paths: {
     // ============ AUTH ROUTES ============
@@ -420,6 +423,222 @@ export const openApiSpec = {
           },
         ],
         responses: { 200: { description: "University deleted" } },
+      },
+    },
+    // ============ COLLEGE ROUTES ============
+    "/api/college": {
+      get: {
+        tags: ["College"],
+        summary: "Get all colleges",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 10 },
+          },
+          {
+            name: "search",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+          },
+          {
+            name: "universityId",
+            in: "query",
+            required: false,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "List of colleges" } },
+      },
+      post: {
+        tags: ["College"],
+        summary: "Create a new college (Admin only)",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["name", "universityId"],
+                properties: {
+                  name: { type: "string" },
+                  universityId: { type: "string", format: "uuid" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 201: { description: "College created" } },
+      },
+    },
+    "/api/college/{id}": {
+      get: {
+        tags: ["College"],
+        summary: "Get college by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: { description: "College details" },
+          404: { description: "College not found" },
+        },
+      },
+      patch: {
+        tags: ["College"],
+        summary: "Update college (Admin only)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  universityId: { type: "string", format: "uuid" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "College updated" } },
+      },
+      delete: {
+        tags: ["College"],
+        summary: "Delete college (Admin only)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "College deleted" } },
+      },
+    },
+    // ============ DEPARTMENT ROUTES ============
+    "/api/department": {
+      get: {
+        tags: ["Department"],
+        summary: "Get all departments",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "collegeId",
+            in: "query",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "List of departments" } },
+      },
+      post: {
+        tags: ["Department"],
+        summary: "Create a new department (Admin only)",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["name", "collegeId"],
+                properties: {
+                  name: { type: "string" },
+                  collegeId: { type: "string", format: "uuid" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 201: { description: "Department created" } },
+      },
+    },
+    "/api/department/{id}": {
+      get: {
+        tags: ["Department"],
+        summary: "Get department by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: { description: "Department details" },
+          404: { description: "Department not found" },
+        },
+      },
+      patch: {
+        tags: ["Department"],
+        summary: "Update department (Admin only)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  collegeId: { type: "string", format: "uuid" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "Department updated" } },
+      },
+      delete: {
+        tags: ["Department"],
+        summary: "Delete department (Admin only)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "Department deleted" } },
       },
     },
   },

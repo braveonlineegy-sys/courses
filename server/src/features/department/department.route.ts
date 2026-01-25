@@ -19,8 +19,8 @@ import { requireAdmin, requireAuth } from "../../middlewares/auth.middleware";
 const app = new Hono()
   // ============ LIST DEPARTMENTS (by University ID) ============
   .get("/", requireAuth, getDepartmentsValidator, async (c) => {
-    const { universityId } = c.req.valid("query");
-    const result = await getDepartments({ universityId });
+    const { collegeId } = c.req.valid("query");
+    const result = await getDepartments({ collegeId });
 
     return successResponse(c, result, "Departments retrieved successfully");
   })
@@ -28,7 +28,7 @@ const app = new Hono()
   // ============ GET DEPARTMENT BY ID ============
   .get("/:id", requireAuth, async (c) => {
     const id = c.req.param("id");
-    if(!id){
+    if (!id) {
       return notFoundResponse(c, "Department not found");
     }
     const department = await getDepartment({ id });

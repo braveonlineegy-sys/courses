@@ -3,13 +3,13 @@ import { z } from "zod";
 export const createDepartment = z.object({
   id: z.uuid(),
   name: z.string(),
-  universityId: z.uuid(),
+  collegeId: z.uuid(),
 });
 
 export const updateDepartment = z.object({
   id: z.uuid(),
   name: z.string(),
-  universityId: z.uuid(),
+  collegeId: z.uuid(),
 });
 
 export const deleteDepartment = z.object({
@@ -21,12 +21,8 @@ export const getDepartment = z.object({
 });
 
 export const getDepartments = z.object({
-  universityId: z.uuid(),
+  collegeId: z.uuid(),
 });
-
-
-
-
 
 export type CreateDepartment = z.infer<typeof createDepartment>;
 export type UpdateDepartment = z.infer<typeof updateDepartment>;
