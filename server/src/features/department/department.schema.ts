@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   createDepartment,
   updateDepartment,
@@ -41,6 +42,6 @@ export const getDepartmentValidator = zValidator(
 
 export const getDepartmentsValidator = zValidator(
   "query",
-  getDepartments,
+  z.object({ collegeId: z.string() }),
   validationHook,
 );
