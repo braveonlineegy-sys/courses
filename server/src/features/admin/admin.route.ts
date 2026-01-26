@@ -12,8 +12,17 @@ import {
   getPendingRecoveryRequests,
   approveRecoveryRequest,
   rejectRecoveryRequest,
+  deleteUser,
+  updateUser,
+  changeUserPassword,
 } from "./admin.service";
-import { createUserValidator, banUserValidator } from "./admin.schema";
+import {
+  createUserValidator,
+  banUserValidator,
+  updateUserValidator,
+  changePasswordValidator,
+  getTeachersValidator,
+} from "./admin.schema";
 
 // ============ ADMIN ROUTES ============
 export const adminRoute = new Hono()
@@ -22,9 +31,15 @@ export const adminRoute = new Hono()
   // CREATE USER
   .post("/users", requireAdmin, createUserValidator, async (c) => {
     const input = c.req.valid("json");
+
     const user = await createUser(input);
+
     return c.json(
-      { success: true, message: "User created successfully", data: { user } },
+      {
+        success: true,
+        message: "User created successfully",
+        data: { user },
+      },
       201,
     );
   })
@@ -41,12 +56,18 @@ export const adminRoute = new Hono()
   })
 
   // get All teachers
-  .get("/teachers", requireAdmin, async (c) => {
-    const users = await getAllTeachers();
+  .get("/teachers", requireAdmin, getTeachersValidator, async (c) => {
+    const { page, limit, isBanned, search } = c.req.valid("query");
+    const result = await getAllTeachers({
+      page: parseInt(page),
+      limit: parseInt(limit),
+      isBanned: isBanned as "true" | "false" | "all",
+      search,
+    });
     return c.json({
       success: true,
       message: "Teachers retrieved successfully",
-      data: { users },
+      data: result,
     });
   })
 
@@ -129,4 +150,42 @@ export const adminRoute = new Hono()
 
     await rejectRecoveryRequest(id, adminNote);
     return c.json({ success: true, message: "Recovery request rejected" });
+  })
+
+  // UPDATE USER
+  .patch("/users/:id", requireAdmin, updateUserValidator, async (c) => {
+    const id = c.req.param("id");
+    const input = c.req.valid("json");
+    const user = await updateUser(id, input);
+    return c.json({
+      success: true,
+      message: "User updated successfully",
+      data: { user },
+    });
+  })
+
+  // CHANGE PASSWORD
+  .patch(
+    "/users/:id/password",
+    requireAdmin,
+    changePasswordValidator,
+    async (c) => {
+      const id = c.req.param("id");
+      const { password } = c.req.valid("json");
+      await changeUserPassword(id, password);
+      return c.json({
+        success: true,
+        message: "Password updated successfully",
+      });
+    },
+  )
+
+  // DELETE USER
+  .delete("/users/:id", requireAdmin, async (c) => {
+    const id = c.req.param("id");
+    await deleteUser(id);
+    return c.json({
+      success: true,
+      message: "User deleted successfully",
+    });
   });

@@ -1,11 +1,29 @@
 import { HTTPException } from "hono/http-exception";
 import type { Hono } from "hono";
 import type { ApiResponse } from "shared";
+import { Prisma } from "@prisma/client";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const applyOnError = (app: Hono<any, any, any>) => {
   app.onError((err, c) => {
     // Handle HTTPException (thrown intentionally)
+
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      return c.json(
+        {
+          success: false,
+          message: "Conflict",
+          error: "Resource already exists",
+          data: null,
+          statusCode: 409,
+        },
+        409,
+      );
+    }
+
     if (err instanceof HTTPException) {
       const response: ApiResponse<null> = {
         success: false,

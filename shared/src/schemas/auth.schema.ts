@@ -49,6 +49,7 @@ export const emailQuerySchema = z.object({
 // ============ TYPES ============
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
+export type PasswordInput = z.infer<typeof passwordSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;

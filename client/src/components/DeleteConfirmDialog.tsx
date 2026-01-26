@@ -15,9 +15,10 @@ interface DeleteConfirmProps {
   onClose: () => void;
   onConfirm: () => void;
   isLoading: boolean;
-  itemName: string;
-  /** إذا كانت true، سيُطلب من المستخدم كتابة كلمة CONFIRM */
+  itemName?: string;
   requireTextConfirm?: boolean;
+  title?: string;
+  description?: string;
 }
 
 export function DeleteConfirmDialog({
@@ -27,6 +28,8 @@ export function DeleteConfirmDialog({
   isLoading,
   itemName,
   requireTextConfirm = false,
+  title,
+  description,
 }: DeleteConfirmProps) {
   const [confirmText, setConfirmText] = useState("");
 
@@ -35,27 +38,38 @@ export function DeleteConfirmDialog({
   }, [isOpen]);
 
   const isConfirmDisabled =
-    isLoading || (requireTextConfirm && confirmText !== "CONFIRM");
+    isLoading || (requireTextConfirm && confirmText !== "تأكيد");
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="text-right">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className={title ? "" : "text-right"}>
         <DialogHeader>
-          <DialogTitle className="text-destructive text-right">
-            تحذير: حذف نهائي!
+          <DialogTitle
+            className={
+              title ? "text-destructive" : "text-destructive text-right"
+            }
+          >
+            {title || "تحذير: حذف نهائي!"}
           </DialogTitle>
-          <DialogDescription className="text-right">
-            أنت على وشك حذف **({itemName})**.
-            {requireTextConfirm ? (
-              <>
-                <br />
-                سيؤدي هذا لحذف كل البيانات المتعلقة بها نهائياً.
-                <br />
-                اكتب كلمة{" "}
-                <span className="font-bold text-red-600">CONFIRM</span> للتأكيد.
-              </>
+          <DialogDescription className={description ? "" : "text-right"}>
+            {description ? (
+              description
             ) : (
-              <br />
+              <>
+                أنت على وشك حذف **({itemName})**.
+                {requireTextConfirm ? (
+                  <>
+                    <br />
+                    سيؤدي هذا لحذف كل البيانات المتعلقة بها نهائياً.
+                    <br />
+                    اكتب كلمة{" "}
+                    <span className="font-bold text-red-600">تأكيد</span>{" "}
+                    للتأكيد.
+                  </>
+                ) : (
+                  <br />
+                )}
+              </>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -64,8 +78,8 @@ export function DeleteConfirmDialog({
           <Input
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
-            placeholder="CONFIRM"
-            className="uppercase text-center"
+            placeholder="تأكيد"
+            className="text-center"
           />
         )}
 

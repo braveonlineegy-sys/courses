@@ -23,6 +23,7 @@ import { Route as AdminTeachersIndexRouteImport } from './routes/admin/teachers/
 import { Route as AdminStudentsIndexRouteImport } from './routes/admin/students/index'
 import { Route as TeacherCoursesCreateRouteImport } from './routes/teacher/courses/create'
 import { Route as AdminUniversitiesUniversityIdIndexRouteImport } from './routes/admin/universities/$universityId/index'
+import { Route as AdminTeachersTeacherIdIndexRouteImport } from './routes/admin/teachers/$teacherId/index'
 import { Route as AdminUniversitiesUniversityIdCollegeIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/index'
 import { Route as AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/$departmentId/index'
 import { Route as AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/$departmentId/$levelId/index'
@@ -98,6 +99,12 @@ const AdminUniversitiesUniversityIdIndexRoute =
     path: '/universities/$universityId/',
     getParentRoute: () => AdminRouteRoute,
   } as any)
+const AdminTeachersTeacherIdIndexRoute =
+  AdminTeachersTeacherIdIndexRouteImport.update({
+    id: '/teachers/$teacherId/',
+    path: '/teachers/$teacherId/',
+    getParentRoute: () => AdminRouteRoute,
+  } as any)
 const AdminUniversitiesUniversityIdCollegeIdIndexRoute =
   AdminUniversitiesUniversityIdCollegeIdIndexRouteImport.update({
     id: '/universities/$universityId/$collegeId/',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/admin/teachers': typeof AdminTeachersIndexRoute
   '/admin/universities': typeof AdminUniversitiesIndexRoute
   '/teacher/courses': typeof TeacherCoursesIndexRoute
+  '/admin/teachers/$teacherId': typeof AdminTeachersTeacherIdIndexRoute
   '/admin/universities/$universityId': typeof AdminUniversitiesUniversityIdIndexRoute
   '/admin/universities/$universityId/$collegeId': typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
@@ -151,6 +159,7 @@ export interface FileRoutesByTo {
   '/admin/teachers': typeof AdminTeachersIndexRoute
   '/admin/universities': typeof AdminUniversitiesIndexRoute
   '/teacher/courses': typeof TeacherCoursesIndexRoute
+  '/admin/teachers/$teacherId': typeof AdminTeachersTeacherIdIndexRoute
   '/admin/universities/$universityId': typeof AdminUniversitiesUniversityIdIndexRoute
   '/admin/universities/$universityId/$collegeId': typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
@@ -171,6 +180,7 @@ export interface FileRoutesById {
   '/admin/teachers/': typeof AdminTeachersIndexRoute
   '/admin/universities/': typeof AdminUniversitiesIndexRoute
   '/teacher/courses/': typeof TeacherCoursesIndexRoute
+  '/admin/teachers/$teacherId/': typeof AdminTeachersTeacherIdIndexRoute
   '/admin/universities/$universityId/': typeof AdminUniversitiesUniversityIdIndexRoute
   '/admin/universities/$universityId/$collegeId/': typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/admin/teachers'
     | '/admin/universities'
     | '/teacher/courses'
+    | '/admin/teachers/$teacherId'
     | '/admin/universities/$universityId'
     | '/admin/universities/$universityId/$collegeId'
     | '/admin/universities/$universityId/$collegeId/$departmentId'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/admin/teachers'
     | '/admin/universities'
     | '/teacher/courses'
+    | '/admin/teachers/$teacherId'
     | '/admin/universities/$universityId'
     | '/admin/universities/$universityId/$collegeId'
     | '/admin/universities/$universityId/$collegeId/$departmentId'
@@ -229,6 +241,7 @@ export interface FileRouteTypes {
     | '/admin/teachers/'
     | '/admin/universities/'
     | '/teacher/courses/'
+    | '/admin/teachers/$teacherId/'
     | '/admin/universities/$universityId/'
     | '/admin/universities/$universityId/$collegeId/'
     | '/admin/universities/$universityId/$collegeId/$departmentId/'
@@ -347,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUniversitiesUniversityIdIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/teachers/$teacherId/': {
+      id: '/admin/teachers/$teacherId/'
+      path: '/teachers/$teacherId'
+      fullPath: '/admin/teachers/$teacherId'
+      preLoaderRoute: typeof AdminTeachersTeacherIdIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/universities/$universityId/$collegeId/': {
       id: '/admin/universities/$universityId/$collegeId/'
       path: '/universities/$universityId/$collegeId'
@@ -376,6 +396,7 @@ interface AdminRouteRouteChildren {
   AdminStudentsIndexRoute: typeof AdminStudentsIndexRoute
   AdminTeachersIndexRoute: typeof AdminTeachersIndexRoute
   AdminUniversitiesIndexRoute: typeof AdminUniversitiesIndexRoute
+  AdminTeachersTeacherIdIndexRoute: typeof AdminTeachersTeacherIdIndexRoute
   AdminUniversitiesUniversityIdIndexRoute: typeof AdminUniversitiesUniversityIdIndexRoute
   AdminUniversitiesUniversityIdCollegeIdIndexRoute: typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
   AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
@@ -387,6 +408,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminStudentsIndexRoute: AdminStudentsIndexRoute,
   AdminTeachersIndexRoute: AdminTeachersIndexRoute,
   AdminUniversitiesIndexRoute: AdminUniversitiesIndexRoute,
+  AdminTeachersTeacherIdIndexRoute: AdminTeachersTeacherIdIndexRoute,
   AdminUniversitiesUniversityIdIndexRoute:
     AdminUniversitiesUniversityIdIndexRoute,
   AdminUniversitiesUniversityIdCollegeIdIndexRoute:

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useCourse } from "@/hooks/use-course";
 import { CourseCard } from "./CourseCard";
 import { CourseDialog } from "./course-dialog";
@@ -13,7 +13,6 @@ interface CourseListProps {
 
 export function CourseList({ levelId, teacherId, role }: CourseListProps) {
   const [page, setPage] = useState(1);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const { coursesQuery } = useCourse(page, "", levelId, 10, teacherId);
 
   const data = coursesQuery.data;
@@ -32,9 +31,7 @@ export function CourseList({ levelId, teacherId, role }: CourseListProps) {
               : "Manage your courses."}
           </p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>
-          <Plus className="ml-2 h-4 w-4" /> Add Course
-        </Button>
+        <CourseDialog role={role} levelId={levelId} teacherId={teacherId} />
       </div>
 
       {/* Grid Container */}
@@ -93,14 +90,6 @@ export function CourseList({ levelId, teacherId, role }: CourseListProps) {
           </div>
         </div>
       )}
-
-      <CourseDialog
-        open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
-        role={role}
-        levelId={levelId}
-        teacherId={teacherId}
-      />
     </div>
   );
 }

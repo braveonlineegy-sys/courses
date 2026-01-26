@@ -1,0 +1,146 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { client } from "@/lib/client";
+import { toast } from "sonner";
+
+export function useTeachers() {
+  const queryClient = useQueryClient();
+
+  // 1. Fetch Teachers
+  const [params, setParams] = useState({
+    page: 1,
+    limit: 10,
+    isBanned: "all" as "all" | "true" | "false",
+  });
+
+  const teachersQuery = useQuery({
+    queryKey: ["teachers", params],
+    queryFn: async () => {
+      const res = await client.api.admin.teachers.$get({
+        query: {
+          page: params.page.toString(),
+          limit: params.limit.toString(),
+          isBanned: params.isBanned,
+        },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch teachers");
+      }
+      const data = await res.json();
+      return data.data; // Now returns { users, metadata }
+    },
+  });
+
+  // 2. Create Teacher
+  const createMutation = useMutation({
+    mutationFn: async (json: any) => {
+      // Ideally typed as CreateUserInput
+      const res = await client.api.admin.users.$post({
+        json: { ...json, role: "TEACHER" },
+      });
+      if (!res.ok) {
+        if (res.status === 409) {
+          throw new Error("هذا البريد الإلكتروني مسجل بالفعل");
+        }
+        // Fallback for other errors or 500s
+        throw new Error("فشل إنشاء حساب المعلم");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
+      toast.success("تم إنشاء حساب المعلم بنجاح");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  // 3. Update Teacher
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, json }: { id: string; json: any }) => {
+      const res = await client.api.admin.users[":id"].$patch({
+        param: { id },
+        json,
+      });
+      if (!res.ok) throw new Error("Failed to update teacher");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
+      toast.success("Teacher updated successfully");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  // 4. Change Password
+  const changePasswordMutation = useMutation({
+    mutationFn: async ({ id, password }: { id: string; password: string }) => {
+      const res = await client.api.admin.users[":id"].password.$patch({
+        param: { id },
+        json: { password },
+      });
+      if (!res.ok) throw new Error("Failed to update password");
+      return res.json();
+    },
+    onSuccess: () => toast.success("Password changed successfully"),
+    onError: (err) => toast.error(err.message),
+  });
+
+  // 5. Delete Teacher
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await client.api.admin.users[":id"].$delete({
+        param: { id },
+      });
+      if (!res.ok) throw new Error("Failed to delete teacher");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
+      toast.success("Teacher deleted successfully");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  // 6. Ban Teacher
+  const banMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      const res = await client.api.admin.users[":id"].ban.$patch({
+        param: { id },
+        json: { reason },
+      });
+      if (!res.ok) throw new Error("Failed to ban teacher");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
+      toast.success("Teacher banned successfully");
+    },
+  });
+
+  // 7. Unban Teacher
+  const unbanMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await client.api.admin.users[":id"].unban.$patch({
+        param: { id },
+      });
+      if (!res.ok) throw new Error("Failed to unban teacher");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
+      toast.success("Teacher unbanned successfully");
+    },
+  });
+
+  return {
+    teachersQuery,
+    createMutation,
+    updateMutation,
+    changePasswordMutation,
+    deleteMutation,
+    banMutation,
+    unbanMutation,
+    params,
+    setParams,
+  };
+}

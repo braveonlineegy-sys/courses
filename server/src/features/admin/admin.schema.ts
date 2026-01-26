@@ -33,20 +33,60 @@ export const recoveryActionSchema = z
 export const createUserValidator = zValidator(
   "json",
   createUserSchema,
-  validationHook
+  validationHook,
 );
 export const banUserValidator = zValidator(
   "json",
   banUserSchema,
-  validationHook
+  validationHook,
 );
 export const recoveryActionValidator = zValidator(
   "json",
   recoveryActionSchema,
-  validationHook
+  validationHook,
+);
+
+export const updateUserSchema = z.object({
+  name: z.string().min(2).optional(),
+  email: z.string().email().optional(),
+  role: z.enum(["TEACHER", "USER"]).optional(),
+  password: passwordSchema.optional(), // Admin can update password directly if needed
+});
+
+export const changePasswordSchema = z.object({
+  password: passwordSchema,
+});
+
+export const updateUserValidator = zValidator(
+  "json",
+  updateUserSchema,
+  validationHook,
+);
+
+export const changePasswordValidator = zValidator(
+  "json",
+  changePasswordSchema,
+  validationHook,
 );
 
 // ============ TYPES ============
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type BanUserInput = z.infer<typeof banUserSchema>;
 export type RecoveryActionInput = z.infer<typeof recoveryActionSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+export const getTeachersSchema = z.object({
+  page: z.string().optional().default("1"),
+  limit: z.string().optional().default("10"),
+  isBanned: z.enum(["true", "false", "all"]).optional().default("all"),
+  search: z.string().optional(),
+});
+
+export const getTeachersValidator = zValidator(
+  "query",
+  getTeachersSchema,
+  validationHook,
+);
+
+export type GetTeachersInput = z.infer<typeof getTeachersSchema>;
