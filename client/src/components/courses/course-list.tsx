@@ -1,69 +1,77 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, AlertCircle } from "lucide-react";
-import { useCollege } from "@/hooks/use-college";
-import { CollegeCard } from "./CollegeCard";
-import { CollegeDialog } from "./CollegeDialog";
+import { useCourse } from "@/hooks/use-course";
+import { CourseCard } from "./CourseCard";
+import { CourseDialog } from "./course-dialog";
 
-export function CollegeList({ universityId }: { universityId: string }) {
+interface CourseListProps {
+  levelId?: string;
+  teacherId?: string;
+  role: "ADMIN" | "TEACHER";
+}
+
+export function CourseList({ levelId, teacherId, role }: CourseListProps) {
   const [page, setPage] = useState(1);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { collegesQuery } = useCollege(page, "", universityId);
+  const { coursesQuery } = useCourse(page, "", levelId, 10, teacherId);
 
-  const data = collegesQuery.data?.data;
-  const colleges = data?.items || [];
-  const totalPages = data?.totalPages || 1;
-  const totalItems = data?.total || 0;
+  const data = coursesQuery.data;
+  const courses = data?.data?.items || [];
+  const totalPages = Math.ceil((data?.data?.total || 0) / 10);
+  const totalItems = data?.data?.total || 0;
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">الكليات</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Courses</h2>
           <p className="text-muted-foreground">
-            إدارة الكليات التابعة للجامعة.
+            {role === "ADMIN"
+              ? "Manage courses for this level."
+              : "Manage your courses."}
           </p>
         </div>
-        <Button
-          onClick={() => setIsCreateOpen(true)}
-          disabled={collegesQuery.isLoading}
-        >
-          <Plus className="ml-2 h-4 w-4" /> إضافة كلية
+        <Button onClick={() => setIsCreateOpen(true)}>
+          <Plus className="ml-2 h-4 w-4" /> Add Course
         </Button>
       </div>
 
       {/* Grid Container */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {collegesQuery.isError ? (
+        {coursesQuery.isError ? (
           <div className="col-span-full py-20 text-center border-2 border-dashed rounded-xl bg-destructive/5">
             <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
-            <p className="text-lg font-medium">{collegesQuery.error.message}</p>
-            <Button variant="link" onClick={() => collegesQuery.refetch()}>
-              إعادة المحاولة
+            <p className="text-lg font-medium">
+              {(coursesQuery.error as Error).message}
+            </p>
+            <Button variant="link" onClick={() => coursesQuery.refetch()}>
+              Try Again
             </Button>
           </div>
-        ) : collegesQuery.isLoading ? (
+        ) : coursesQuery.isLoading ? (
           // Skeletons
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-40 bg-muted animate-pulse rounded-xl" />
+            <div
+              key={i}
+              className="h-[300px] bg-muted animate-pulse rounded-xl"
+            />
           ))
-        ) : colleges.length === 0 ? (
+        ) : courses.length === 0 ? (
           <div className="col-span-full py-20 text-center border-2 border-dashed rounded-xl">
-            <p className="text-muted-foreground italic">
-              لا توجد كليات مضافة لهذه الجامعة بعد.
-            </p>
+            <p className="text-muted-foreground italic">No courses found.</p>
           </div>
         ) : (
-          colleges.map((college) => (
-            <CollegeCard key={college.id} college={college} />
+          courses.map((course) => (
+            <CourseCard key={course.id} course={course} />
           ))
         )}
       </div>
 
-      {totalItems > 10 && !collegesQuery.isLoading && (
+      {totalItems > 10 && !coursesQuery.isLoading && (
         <div className="flex items-center justify-between pt-6 border-t">
           <span className="text-sm text-muted-foreground">
-            عرض {colleges.length} من أصل {totalItems} كلية
+            Showing {courses.length} of {totalItems} courses
           </span>
           <div className="flex gap-2">
             <Button
@@ -72,7 +80,7 @@ export function CollegeList({ universityId }: { universityId: string }) {
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
             >
-              السابق
+              Previous
             </Button>
             <Button
               variant="outline"
@@ -80,16 +88,18 @@ export function CollegeList({ universityId }: { universityId: string }) {
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
             >
-              التالي
+              Next
             </Button>
           </div>
         </div>
       )}
 
-      <CollegeDialog
+      <CourseDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
-        universityId={universityId}
+        role={role}
+        levelId={levelId}
+        teacherId={teacherId}
       />
     </div>
   );

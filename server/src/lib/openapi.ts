@@ -17,6 +17,7 @@ export const openApiSpec = {
     { name: "College", description: "College management" },
     { name: "Department", description: "Department management" },
     { name: "Level", description: "Level management" },
+    { name: "Course", description: "Course management" },
   ],
   paths: {
     // ============ AUTH ROUTES ============
@@ -742,6 +743,182 @@ export const openApiSpec = {
           },
         ],
         responses: { 200: { description: "Level deleted" } },
+      },
+    },
+    // ============ COURSE ROUTES ============
+    "/api/course": {
+      get: {
+        tags: ["Course"],
+        summary: "Get all courses",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 10 },
+          },
+          {
+            name: "search",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+          },
+          {
+            name: "levelId",
+            in: "query",
+            required: false,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "List of courses" } },
+      },
+      post: {
+        tags: ["Course"],
+        summary: "Create a new course (Teacher or Admin)",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: [
+                  "title",
+                  "description",
+                  "fileKey",
+                  "smallDescription",
+                  "price",
+                  "duration",
+                  "term",
+                  "status",
+                  "teacherId",
+                ],
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  fileKey: { type: "string" },
+                  smallDescription: { type: "string" },
+                  price: { type: "integer", minimum: 0 },
+                  duration: { type: "integer", minimum: 1 },
+                  term: { type: "string", enum: ["REGULAR", "SUMMER"] },
+                  status: { type: "string", enum: ["PUBLISHED", "ARCHIVED"] },
+                  teacherId: { type: "string" },
+                  levelId: { type: "string", format: "uuid" },
+                  cashNumbers: { type: "array", items: { type: "string" } },
+                  instapayUsername: { type: "string" },
+                  pdfLink: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 201: { description: "Course created" } },
+      },
+    },
+    "/api/course/my-courses": {
+      get: {
+        tags: ["Course"],
+        summary: "Get courses owned by the current teacher",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "page",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 1 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 10 },
+          },
+          {
+            name: "search",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+          },
+        ],
+        responses: { 200: { description: "List of teacher's courses" } },
+      },
+    },
+    "/api/course/{id}": {
+      get: {
+        tags: ["Course"],
+        summary: "Get course by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: { description: "Course details" },
+          404: { description: "Course not found" },
+        },
+      },
+      patch: {
+        tags: ["Course"],
+        summary: "Update course (Teacher for own courses, Admin for any)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  fileKey: { type: "string" },
+                  smallDescription: { type: "string" },
+                  price: { type: "integer", minimum: 0 },
+                  duration: { type: "integer", minimum: 1 },
+                  term: { type: "string", enum: ["REGULAR", "SUMMER"] },
+                  status: { type: "string", enum: ["PUBLISHED", "ARCHIVED"] },
+                  levelId: { type: "string", format: "uuid" },
+                  cashNumbers: { type: "array", items: { type: "string" } },
+                  instapayUsername: { type: "string" },
+                  pdfLink: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "Course updated" } },
+      },
+      delete: {
+        tags: ["Course"],
+        summary: "Delete course (Admin only)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "Course deleted" } },
       },
     },
   },

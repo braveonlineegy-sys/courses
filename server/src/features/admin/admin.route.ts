@@ -1,9 +1,11 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { requireAdmin } from "../../middlewares/auth.middleware";
+import { UserRole, type UserRoleType } from "../../lib/constants";
 import {
   createUser,
   getAllUsers,
+  getAllTeachers,
   getUserById,
   banUser,
   unbanUser,
@@ -16,21 +18,21 @@ import { createUserValidator, banUserValidator } from "./admin.schema";
 // ============ ADMIN ROUTES ============
 export const adminRoute = new Hono()
   // Apply admin middleware to all routes
-  .use("/*", requireAdmin)
 
   // CREATE USER
-  .post("/users", createUserValidator, async (c) => {
+  .post("/users", requireAdmin, createUserValidator, async (c) => {
     const input = c.req.valid("json");
     const user = await createUser(input);
     return c.json(
       { success: true, message: "User created successfully", data: { user } },
-      201
+      201,
     );
   })
 
   // GET ALL USERS
-  .get("/users", async (c) => {
-    const users = await getAllUsers();
+  .get("/users", requireAdmin, async (c) => {
+    const { role } = c.req.query();
+    const users = await getAllUsers({ role: role as UserRoleType });
     return c.json({
       success: true,
       message: "Users retrieved successfully",
@@ -38,8 +40,18 @@ export const adminRoute = new Hono()
     });
   })
 
+  // get All teachers
+  .get("/teachers", requireAdmin, async (c) => {
+    const users = await getAllTeachers();
+    return c.json({
+      success: true,
+      message: "Teachers retrieved successfully",
+      data: { users },
+    });
+  })
+
   // GET USER BY ID
-  .get("/users/:id", async (c) => {
+  .get("/users/:id", requireAdmin, async (c) => {
     const id = c.req.param("id");
     const user = await getUserById(id);
 
@@ -55,7 +67,7 @@ export const adminRoute = new Hono()
   })
 
   // BAN USER
-  .patch("/users/:id/ban", banUserValidator, async (c) => {
+  .patch("/users/:id/ban", requireAdmin, banUserValidator, async (c) => {
     const id = c.req.param("id");
     const { reason } = c.req.valid("json");
     const user = await banUser(id, reason);
@@ -67,7 +79,7 @@ export const adminRoute = new Hono()
   })
 
   // UNBAN USER
-  .patch("/users/:id/unban", async (c) => {
+  .patch("/users/:id/unban", requireAdmin, async (c) => {
     const id = c.req.param("id");
     const user = await unbanUser(id);
     return c.json({
@@ -78,7 +90,7 @@ export const adminRoute = new Hono()
   })
 
   // GET RECOVERY REQUESTS
-  .get("/recovery-requests", async (c) => {
+  .get("/recovery-requests", requireAdmin, async (c) => {
     const requests = await getPendingRecoveryRequests();
     return c.json({
       success: true,
@@ -88,7 +100,7 @@ export const adminRoute = new Hono()
   })
 
   // APPROVE RECOVERY
-  .patch("/recovery-requests/:id/approve", async (c) => {
+  .patch("/recovery-requests/:id/approve", requireAdmin, async (c) => {
     const id = c.req.param("id");
     let adminNote: string | undefined;
 
@@ -104,7 +116,7 @@ export const adminRoute = new Hono()
   })
 
   // REJECT RECOVERY
-  .patch("/recovery-requests/:id/reject", async (c) => {
+  .patch("/recovery-requests/:id/reject", requireAdmin, async (c) => {
     const id = c.req.param("id");
     let adminNote: string | undefined;
 

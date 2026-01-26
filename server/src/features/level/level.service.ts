@@ -54,7 +54,15 @@ export const getLevels = async ({ departmentId }: GetLevels) => {
       order: "asc",
     },
     include: {
-      department: true,
+      department: {
+        include: {
+          college: {
+            include: {
+              university: true,
+            },
+          },
+        },
+      },
     },
   });
 };

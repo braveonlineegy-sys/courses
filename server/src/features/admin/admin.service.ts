@@ -1,5 +1,9 @@
 import prisma from "../../lib/db";
-import { RecoveryStatus } from "../../lib/constants";
+import {
+  RecoveryStatus,
+  UserRole,
+  type UserRoleType,
+} from "../../lib/constants";
 import type { CreateUserInput } from "./admin.schema";
 
 // We'll use better-auth's internal password handling
@@ -42,8 +46,11 @@ export const createUser = async (input: CreateUserInput) => {
 };
 
 // Get all users (for admin)
-export const getAllUsers = async () => {
+export const getAllUsers = async (filters?: { role?: UserRoleType }) => {
   return prisma.user.findMany({
+    where: {
+      ...(filters?.role && { role: filters.role }),
+    },
     select: {
       id: true,
       email: true,
@@ -53,6 +60,23 @@ export const getAllUsers = async () => {
       isBanned: true,
       banReason: true,
       createdAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+// Get all teachers
+export const getAllTeachers = async () => {
+  return prisma.user.findMany({
+    where: {
+      role: "TEACHER",
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      image: true,
+      phoneNumber: true,
     },
     orderBy: { createdAt: "desc" },
   });

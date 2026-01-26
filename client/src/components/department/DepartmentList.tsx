@@ -60,7 +60,7 @@ export function DepartmentList({ collegeId }: { collegeId: string }) {
             </p>
           </div>
         ) : (
-          departments.map((dept: any) => (
+          departments.map((dept) => (
             <DepartmentCard key={dept.id} department={dept} />
           ))
         )}

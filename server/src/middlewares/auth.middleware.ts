@@ -39,6 +39,24 @@ export const requireAdmin = async (c: Context, next: Next) => {
   await next();
 };
 
+export const requireTeacher = async (c: Context, next: Next) => {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
+
+  if (!session) {
+    return unauthorizedResponse(c, "Authentication required");
+  }
+
+  if (session.user.role !== UserRole.TEACHER) {
+    return forbiddenResponse(c, "Teacher access required");
+  }
+
+  c.set("user", session.user);
+  c.set("session", session.session);
+
+  await next();
+};
 // Middleware to require teacher or admin role
 export const requireTeacherOrAdmin = async (c: Context, next: Next) => {
   const session = await auth.api.getSession({
@@ -59,3 +77,4 @@ export const requireTeacherOrAdmin = async (c: Context, next: Next) => {
 
   await next();
 };
+

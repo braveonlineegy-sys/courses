@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createUniversity, updateUniversity } from "shared";
@@ -6,7 +5,7 @@ import { useUniversity } from "@/hooks/use-university";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch"; // أو Checkbox حسب الـ UI بتاعك
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,

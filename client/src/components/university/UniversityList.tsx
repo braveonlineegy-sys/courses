@@ -57,7 +57,7 @@ export function UniversityList() {
             </p>
           </div>
         ) : (
-          universities.map((uni: any) => (
+          universities.map((uni) => (
             <UniversityItem key={uni.id} university={uni} />
           ))
         )}

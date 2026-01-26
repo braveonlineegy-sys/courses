@@ -198,19 +198,14 @@ enum CourseTerm {
 }
 
 model Course {
-  id               String @id @default(uuid())
-  slug             String @unique
+  id String @id @default(uuid())
+
   title            String
   description      String
   fileKey          String
   price            Int
   duration         Int
   smallDescription String
-
-  // Discount code settings
-  discountCode       String?
-  discountPercentage Int?
-  discountExpiresAt  DateTime?
 
   term CourseTerm @default(REGULAR)
 
@@ -236,7 +231,6 @@ model Course {
   qrBatches      QRBatch[]
   accesses       CourseAccess[]
 
-  //TODO: CHANGE IT TO 1 TO 1 AND REMOVE PERSONAL CHAT
   chatRooms ChatRoom[]
 
   @@map("course")
