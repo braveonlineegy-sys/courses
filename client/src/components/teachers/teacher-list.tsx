@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTeachers } from "@/hooks/use-teachers";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -52,9 +53,8 @@ export function TeacherList() {
     setParams,
   } = useTeachers();
 
-  const teachersData = teachersQuery.data || {};
-  const teachers = teachersData.users || [];
-  const metadata = teachersData.metadata || {
+  const teachers = teachersQuery.data?.users || [];
+  const metadata = teachersQuery.data?.metadata || {
     page: 1,
     limit: 10,
     total: 0,
@@ -104,31 +104,6 @@ export function TeacherList() {
     }));
   };
 
-  if (teachersQuery.isLoading) {
-    return (
-      <div className="space-y-4" dir="rtl">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">المعلمين</h2>
-          <Skeleton className="h-10 w-[120px]" />
-        </div>
-        <div className="rounded-md border p-4 space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="flex items-center space-x-4 rtl:space-x-reverse"
-            >
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-[250px]" />
-                <Skeleton className="h-4 w-[200px]" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   if (teachersQuery.isError) {
     return <div>حدث خطأ أثناء تحميل المعلمين</div>;
   }
@@ -138,6 +113,20 @@ export function TeacherList() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold">المعلمين</h2>
         <div className="flex items-center gap-2">
+          <div className="relative">
+            <Input
+              placeholder="بحث..."
+              value={params.search || ""}
+              onChange={(e) =>
+                setParams((prev) => ({
+                  ...prev,
+                  search: e.target.value,
+                  page: 1,
+                }))
+              }
+              className="w-[200px]"
+            />
+          </div>
           <Select value={params.isBanned} onValueChange={handleFilterChange}>
             <SelectTrigger className="w-[180px]">
               <Filter className="w-4 h-4 ml-2" />
@@ -166,7 +155,30 @@ export function TeacherList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {teachers.length > 0 ? (
+            {teachersQuery.isLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[150px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[200px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[100px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[80px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : teachers.length > 0 ? (
               teachers.map((teacher: any) => (
                 <TableRow
                   key={teacher.id}
@@ -230,7 +242,7 @@ export function TeacherList() {
                             onClick={() =>
                               setBanTeacher({
                                 id: teacher.id,
-                                name: teacher.name,
+                                name: teacher.name || "",
                               })
                             }
                             className="text-destructive flex justify-end gap-2 cursor-pointer"

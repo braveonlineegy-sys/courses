@@ -1,17 +1,50 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import {
+  useQueryState,
+  parseAsInteger,
+  parseAsString,
+  parseAsStringLiteral,
+} from "nuqs";
 import { client } from "@/lib/client";
 import { toast } from "sonner";
 
 export function useTeachers() {
   const queryClient = useQueryClient();
 
-  // 1. Fetch Teachers
-  const [params, setParams] = useState({
-    page: 1,
-    limit: 10,
-    isBanned: "all" as "all" | "true" | "false",
-  });
+  // 1. URL State Management with nuqs
+  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [limit, setLimit] = useQueryState(
+    "limit",
+    parseAsInteger.withDefault(10),
+  );
+  const [isBanned, setIsBanned] = useQueryState(
+    "isBanned",
+    parseAsStringLiteral(["all", "true", "false"] as const).withDefault("all"),
+  );
+  const [search, setSearch] = useQueryState(
+    "search",
+    parseAsString.withDefault(""),
+  );
+
+  const params = {
+    page,
+    limit,
+    isBanned,
+    search,
+  };
+
+  // Helper to update params like before (partial update)
+  const setParams = (
+    updater:
+      | Partial<typeof params>
+      | ((prev: typeof params) => Partial<typeof params>),
+  ) => {
+    const newValues = typeof updater === "function" ? updater(params) : updater;
+    if (newValues.page !== undefined) setPage(newValues.page);
+    if (newValues.limit !== undefined) setLimit(newValues.limit);
+    if (newValues.isBanned !== undefined) setIsBanned(newValues.isBanned);
+    if (newValues.search !== undefined) setSearch(newValues.search);
+  };
 
   const teachersQuery = useQuery({
     queryKey: ["teachers", params],
@@ -21,6 +54,7 @@ export function useTeachers() {
           page: params.page.toString(),
           limit: params.limit.toString(),
           isBanned: params.isBanned,
+          search: params.search,
         },
       });
       if (!res.ok) {

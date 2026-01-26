@@ -6,6 +6,7 @@ import { Navbar } from "../components/Navbar";
 import { ThemeProvider } from "../providers/themeProvider";
 import appCss from "../styles.css?url";
 import { queryClient } from "@/providers/queryClient";
+import { NuqsAdapter } from "nuqs/adapters/react";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -61,10 +62,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <QueryClientProvider client={queryClient}>
-            <Navbar />
-            {children}
-          </QueryClientProvider>
+          <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+              <Navbar />
+              {children}
+            </QueryClientProvider>
+          </NuqsAdapter>
           <TanStackDevtools
             config={{
               position: "bottom-right",
