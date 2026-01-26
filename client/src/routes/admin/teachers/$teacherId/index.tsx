@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTeacher } from "@/hooks/use-teachers";
 
-import { useTeacher } from "@/hooks/use-teacher";
 import { TeacherDetailsSkeleton } from "@/components/teachers/teacher-details-skeleton";
 import { TeacherProfileHeader } from "@/components/teachers/teacher-profile-header";
 import { TeacherStats } from "@/components/teachers/teacher-stats";

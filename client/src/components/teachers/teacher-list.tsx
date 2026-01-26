@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTeachers } from "@/hooks/use-teachers";
+import { Link } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -195,7 +196,13 @@ export function TeacherList() {
                     </Avatar>
                   </TableCell>
                   <TableCell className="font-medium">
-                    {teacher.name || "N/A"}
+                    <Link
+                      to="/admin/teachers/$teacherId"
+                      params={{ teacherId: teacher.id }}
+                      className="hover:underline text-primary"
+                    >
+                      {teacher.name || "N/A"}
+                    </Link>
                   </TableCell>
                   <TableCell>{teacher.email}</TableCell>
                   <TableCell>******</TableCell>

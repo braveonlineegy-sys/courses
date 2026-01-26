@@ -178,3 +178,26 @@ export function useTeachers() {
     setParams,
   };
 }
+
+export const getTeacher = async (id: string) => {
+  const res = await client.api.admin.users[":id"].$get({
+    param: { id },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch teacher");
+  }
+  const data = await res.json();
+  return data.data?.user!;
+};
+
+export type TeacherDetailsType = Awaited<ReturnType<typeof getTeacher>>;
+
+export function useTeacher(id: string) {
+  const teacherQuery = useQuery({
+    queryKey: ["teacher", id],
+    queryFn: () => getTeacher(id),
+    enabled: !!id,
+  });
+
+  return { teacherQuery };
+}

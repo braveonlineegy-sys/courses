@@ -9,8 +9,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { TeacherDetailsType } from "@/hooks/use-teachers";
+
 interface TeacherCoursesListProps {
-  courses: any[];
+  courses: TeacherDetailsType["coursesCreated"];
 }
 
 export function TeacherCoursesList({ courses }: TeacherCoursesListProps) {
@@ -33,7 +35,7 @@ export function TeacherCoursesList({ courses }: TeacherCoursesListProps) {
           </TableHeader>
           <TableBody>
             {courses && courses.length > 0 ? (
-              courses.map((course: any) => (
+              courses.map((course) => (
                 <TableRow key={course.id}>
                   <TableCell className="font-medium">{course.title}</TableCell>
                   <TableCell>{course.level?.name || "-"}</TableCell>
