@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
-import { useCourse } from "@/hooks/use-course";
+import { AlertCircle, Plus } from "lucide-react";
+import { useCourse, type CourseType } from "@/hooks/use-course"; // Ensure CourseType is exported
 import { CourseCard } from "./CourseCard";
 import { CourseDialog } from "./course-dialog";
+import { DeleteConfirmDialog } from "../DeleteConfirmDialog";
 
 interface CourseListProps {
   levelId?: string;
@@ -13,12 +14,30 @@ interface CourseListProps {
 
 export function CourseList({ levelId, teacherId, role }: CourseListProps) {
   const [page, setPage] = useState(1);
-  const { coursesQuery } = useCourse(page, "", levelId, 10, teacherId);
+  const { coursesQuery, deleteMutation } = useCourse(
+    page,
+    "",
+    levelId,
+    10,
+    teacherId,
+  );
+
+  // State for actions
+  const [courseToDelete, setCourseToDelete] = useState<CourseType | null>(null);
+  const [courseToEdit, setCourseToEdit] = useState<CourseType | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // For Edit/Create dialog
 
   const data = coursesQuery.data;
   const courses = data?.data?.items || [];
   const totalPages = Math.ceil((data?.data?.total || 0) / 10);
   const totalItems = data?.data?.total || 0;
+
+  const handleDelete = async () => {
+    if (courseToDelete) {
+      await deleteMutation.mutateAsync(courseToDelete.id);
+      setCourseToDelete(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -31,7 +50,29 @@ export function CourseList({ levelId, teacherId, role }: CourseListProps) {
               : "Manage your courses."}
           </p>
         </div>
-        <CourseDialog role={role} levelId={levelId} teacherId={teacherId} />
+        <div className="flex gap-2">
+          <Button
+            onClick={() => {
+              setCourseToEdit(null);
+              setIsDialogOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add Course
+          </Button>
+
+          <CourseDialog
+            role={role}
+            levelId={levelId}
+            teacherId={teacherId}
+            open={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            initialData={courseToEdit || undefined} // Pass course to edit
+            onClose={() => {
+              setCourseToEdit(null); // Reset edit state on close
+              setIsDialogOpen(false);
+            }}
+          />
+        </div>
       </div>
 
       {/* Grid Container */}
@@ -60,7 +101,15 @@ export function CourseList({ levelId, teacherId, role }: CourseListProps) {
           </div>
         ) : (
           courses.map((course) => (
-            <CourseCard key={course.id} course={course} />
+            <CourseCard
+              key={course.id}
+              course={course}
+              onEdit={(c) => {
+                setCourseToEdit(c);
+                setIsDialogOpen(true);
+              }}
+              onDelete={(id) => setCourseToDelete(course)}
+            />
           ))
         )}
       </div>
@@ -90,6 +139,17 @@ export function CourseList({ levelId, teacherId, role }: CourseListProps) {
           </div>
         </div>
       )}
+
+      <DeleteConfirmDialog
+        isOpen={!!courseToDelete}
+        onClose={() => setCourseToDelete(null)}
+        onConfirm={handleDelete}
+        isLoading={deleteMutation.isPending}
+        title="حذف الدورة"
+        description={`هل أنت متأكد من حذف دورة "${courseToDelete?.title}"؟`}
+        requireTextConfirm={true}
+        itemName={courseToDelete?.title}
+      />
     </div>
   );
 }

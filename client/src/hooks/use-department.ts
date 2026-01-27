@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/client";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
 async function getAllDepartments(collegeId: string) {
   const res = await client.api.department.$get({
@@ -55,7 +56,7 @@ export function useDepartment(collegeId: string) {
       const res = await client.api.department.$post({
         json: {
           ...json,
-          id: crypto.randomUUID(), // Stub ID
+          id: uuidv4(), // Stub ID
         },
       });
 

@@ -1,10 +1,15 @@
 import { Hono } from "hono";
 import {
   createCourseValidator,
-  getCourseValidator,
   getCoursesValidator,
+  getCourseValidator,
   updateCourseValidator,
 } from "./course.schema";
+import {
+  deleteFromCloudinary,
+  getPublicIdFromUrl,
+  uploadToCloudinary,
+} from "../../lib/cloudinary";
 import {
   createCourse,
   deleteCourse,
@@ -77,14 +82,70 @@ const app = new Hono<{ Variables: AuthType }>()
   // ============ CREATE COURSE ============
   .post("/", requireTeacherOrAdmin, createCourseValidator, async (c) => {
     const user = c.get("user")!;
-    const data = c.req.valid("json");
+    const data = c.req.valid("form");
 
     // Teachers can only create courses for themselves
     // Admins can create courses for any teacher
     const teacherId = user.role === UserRole.ADMIN ? data.teacherId : user.id;
 
+    // Upload Files
+    console.log("Create Course - Data received:", {
+      ...data,
+      fileKey: data.fileKey ? "File Present" : "Missing",
+    });
+    const imageFile = data.fileKey as File;
+
+    let imageLink: string;
+    try {
+      console.log("Create Course - Uploading image...");
+      // Check if imageFile has arrayBuffer (is it a File?)
+      if (typeof imageFile.arrayBuffer !== "function") {
+        console.error(
+          "Create Course - fileKey is not a File object:",
+          imageFile,
+        );
+        throw new Error("Invalid file format for fileKey");
+      }
+      const uploadResult = await uploadToCloudinary(imageFile, "courses");
+      imageLink = uploadResult.secure_url;
+      console.log("Create Course - Image uploaded:", imageLink);
+    } catch (error) {
+      console.error("Create Course - Upload failed:", error);
+      throw error; // Re-throw to cause 500 but now we have logs
+    }
+
+    let pdfLink: string | undefined = undefined;
+    if (data.pdfLink) {
+      const pdfFile = data.pdfLink as File;
+      // Defensive check for file type
+      if (typeof pdfFile.arrayBuffer === "function") {
+        try {
+          const { secure_url } = await uploadToCloudinary(pdfFile, "courses");
+          pdfLink = secure_url;
+          console.log("Create Course - PDF uploaded:", pdfLink);
+        } catch (e) {
+          console.error("Create Course - PDF upload failed:", e);
+          // Optional: decide if we fail the whole request or just skip PDF.
+          // For now, let's fail to be safe as user expects it.
+          throw e;
+        }
+      } else {
+        console.warn(
+          "Create Course - pdfLink provided but not a File with arrayBuffer:",
+          pdfLink,
+        );
+      }
+    }
+
+    const cashNumbers = data.cashNumbers
+      ? JSON.parse(data.cashNumbers)
+      : undefined;
+
     const course = await createCourse({
       ...data,
+      fileKey: imageLink!, // We know imageLink is set because we threw if failed
+      pdfLink,
+      cashNumbers,
       teacherId,
     });
 
@@ -95,7 +156,7 @@ const app = new Hono<{ Variables: AuthType }>()
   .patch("/:id", requireTeacherOrAdmin, updateCourseValidator, async (c) => {
     const user = c.get("user")!;
     const id = c.req.param("id");
-    const data = c.req.valid("json");
+    const data = c.req.valid("form");
 
     // Check existence first
     const existing = await getCourse({ id });
@@ -108,7 +169,47 @@ const app = new Hono<{ Variables: AuthType }>()
       return forbiddenResponse(c, "You can only update your own courses");
     }
 
-    const updated = await updateCourse(data, id);
+    let imageLink = existing.fileKey;
+    if (data.fileKey) {
+      const imageFile = data.fileKey as File;
+      const { secure_url } = await uploadToCloudinary(imageFile, "courses");
+      imageLink = secure_url;
+
+      // Delete old image
+      const oldPublicId = getPublicIdFromUrl(existing.fileKey);
+      if (oldPublicId) {
+        await deleteFromCloudinary(oldPublicId);
+      }
+    }
+
+    let pdfLink = existing.pdfLink;
+    if (data.pdfLink) {
+      const pdfFile = data.pdfLink as File;
+      const { secure_url } = await uploadToCloudinary(pdfFile, "courses");
+      pdfLink = secure_url;
+
+      // Delete old PDF
+      if (existing.pdfLink) {
+        const oldPublicId = getPublicIdFromUrl(existing.pdfLink);
+        if (oldPublicId) {
+          await deleteFromCloudinary(oldPublicId);
+        }
+      }
+    }
+
+    const cashNumbers = data.cashNumbers
+      ? JSON.parse(data.cashNumbers)
+      : undefined;
+
+    const updated = await updateCourse(
+      {
+        ...data,
+        fileKey: imageLink,
+        pdfLink: pdfLink || undefined,
+        cashNumbers,
+      },
+      id,
+    );
     return successResponse(c, updated, "Course updated successfully");
   })
 
@@ -119,6 +220,19 @@ const app = new Hono<{ Variables: AuthType }>()
     const existing = await getCourse({ id });
     if (!existing) {
       return notFoundResponse(c, "Course not found");
+    }
+
+    // Delete associated files
+    const imagePublicId = getPublicIdFromUrl(existing.fileKey);
+    if (imagePublicId) {
+      await deleteFromCloudinary(imagePublicId);
+    }
+
+    if (existing.pdfLink) {
+      const pdfPublicId = getPublicIdFromUrl(existing.pdfLink);
+      if (pdfPublicId) {
+        await deleteFromCloudinary(pdfPublicId);
+      }
     }
 
     await deleteCourse({ id });

@@ -48,21 +48,7 @@ export function useTeachers() {
 
   const teachersQuery = useQuery({
     queryKey: ["teachers", params],
-    queryFn: async () => {
-      const res = await client.api.admin.teachers.$get({
-        query: {
-          page: params.page.toString(),
-          limit: params.limit.toString(),
-          isBanned: params.isBanned,
-          search: params.search,
-        },
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch teachers");
-      }
-      const data = await res.json();
-      return data.data; // Now returns { users, metadata }
-    },
+    queryFn: () => getTeachersList(params),
   });
 
   // 2. Create Teacher
@@ -178,6 +164,27 @@ export function useTeachers() {
     setParams,
   };
 }
+
+export const getTeachersList = async (params: {
+  page: number;
+  limit: number;
+  isBanned: "true" | "false" | "all";
+  search: string;
+}) => {
+  const res = await client.api.admin.teachers.$get({
+    query: {
+      page: params.page.toString(),
+      limit: params.limit.toString(),
+      isBanned: params.isBanned,
+      search: params.search,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch teachers");
+  }
+  const data = await res.json();
+  return data.data;
+};
 
 export const getTeacher = async (id: string) => {
   const res = await client.api.admin.users[":id"].$get({

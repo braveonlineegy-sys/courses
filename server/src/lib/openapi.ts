@@ -786,7 +786,7 @@ export const openApiSpec = {
         requestBody: {
           required: true,
           content: {
-            "application/json": {
+            "multipart/form-data": {
               schema: {
                 type: "object",
                 required: [
@@ -803,7 +803,7 @@ export const openApiSpec = {
                 properties: {
                   title: { type: "string" },
                   description: { type: "string" },
-                  fileKey: { type: "string" },
+                  fileKey: { type: "string", format: "binary" },
                   smallDescription: { type: "string" },
                   price: { type: "integer", minimum: 0 },
                   duration: { type: "integer", minimum: 1 },
@@ -811,9 +811,9 @@ export const openApiSpec = {
                   status: { type: "string", enum: ["PUBLISHED", "ARCHIVED"] },
                   teacherId: { type: "string" },
                   levelId: { type: "string", format: "uuid" },
-                  cashNumbers: { type: "array", items: { type: "string" } },
+                  cashNumbers: { type: "string" }, // JSON stringified array or comma separated
                   instapayUsername: { type: "string" },
-                  pdfLink: { type: "string" },
+                  pdfLink: { type: "string", format: "binary" },
                 },
               },
             },
@@ -883,22 +883,22 @@ export const openApiSpec = {
         requestBody: {
           required: true,
           content: {
-            "application/json": {
+            "multipart/form-data": {
               schema: {
                 type: "object",
                 properties: {
                   title: { type: "string" },
                   description: { type: "string" },
-                  fileKey: { type: "string" },
+                  fileKey: { type: "string", format: "binary" },
                   smallDescription: { type: "string" },
                   price: { type: "integer", minimum: 0 },
                   duration: { type: "integer", minimum: 1 },
                   term: { type: "string", enum: ["REGULAR", "SUMMER"] },
                   status: { type: "string", enum: ["PUBLISHED", "ARCHIVED"] },
                   levelId: { type: "string", format: "uuid" },
-                  cashNumbers: { type: "array", items: { type: "string" } },
+                  cashNumbers: { type: "string" },
                   instapayUsername: { type: "string" },
-                  pdfLink: { type: "string" },
+                  pdfLink: { type: "string", format: "binary" },
                 },
               },
             },

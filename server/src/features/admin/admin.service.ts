@@ -27,7 +27,7 @@ export const createUser = async (input: CreateUserInput) => {
 
     await tx.account.create({
       data: {
-        id: crypto.randomUUID(),
+        id: Bun.randomUUIDv7(),
         accountId: user.id,
         providerId: "credential",
         userId: user.id,

@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createLevel, updateLevel } from "shared";
 import { useLevel } from "@/hooks/use-level";
+import { v4 as uuidv4 } from "uuid";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,7 +68,7 @@ export function LevelDialog({
               departmentId: level?.departmentId,
             }
           : {
-              id: crypto.randomUUID(),
+              id: uuidv4(),
               name: "",
               order: 0,
               departmentId: departmentId,
@@ -88,7 +89,7 @@ export function LevelDialog({
       updateMutation.mutate({ id: level.id, json: values }, options);
     } else {
       // Ensure ID is present if not already
-      if (!values.id) values.id = crypto.randomUUID();
+      if (!values.id) values.id = uuidv4();
       createMutation.mutate(values, options);
     }
   };

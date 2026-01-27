@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useTeachers } from "@/hooks/use-teachers";
+import { useQuery } from "@tanstack/react-query";
+import { getTeacher, getTeachersList } from "@/hooks/use-teachers";
 import {
   Combobox,
   ComboboxContent,
@@ -21,24 +22,43 @@ interface TeacherSelectProps {
 }
 
 export function TeacherSelect({ value, onChange, error }: TeacherSelectProps) {
-  const { teachersQuery, params, setParams } = useTeachers();
-  const teachers = teachersQuery.data?.users || [];
-  const metadata = teachersQuery.data?.metadata;
-  const isLoading = teachersQuery.isLoading;
-
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
-  const selectedTeacher = teachers.find((t) => t.id === value);
+  // Fetch teachers with local params
+  const { data, isLoading } = useQuery({
+    queryKey: ["teachers-select", search, page],
+    queryFn: () =>
+      getTeachersList({
+        search,
+        page,
+        limit: 10,
+        isBanned: "false", // Only show active teachers for selection
+      }),
+    placeholderData: (prev) => prev, // Keep previous data while fetching
+  });
 
-  const handleSearch = (term: string) => {
-    setParams((prev) => ({ ...prev, search: term, page: 1 }));
-  };
+  const teachers = data?.users || [];
+  const metadata = data?.metadata;
 
-  const handlePageChange = (newPage: number) => {
-    if (metadata && newPage >= 1 && newPage <= metadata.totalPages) {
-      setParams((prev) => ({ ...prev, page: newPage }));
-    }
-  };
+  const selectedTeacher = teachers.find((t: any) => t.id === value);
+
+  // If we have a value but it's not in the current list (due to pagination/search),
+  // we might want to fetch it or display it. For simplicity, we just display "Teacher Selected"
+  // or rely on the parent to provide details if needed, but here we can try to find it.
+
+  // NOTE: If the selected value is not in the current page, we might want to fetch it separately
+  // to show the name correctly.
+
+  const { data: specificTeacher } = useQuery({
+    queryKey: ["teacher", value],
+    queryFn: () => getTeacher(value!),
+    enabled: !!value && !selectedTeacher,
+  });
+
+  const displayTeacherName =
+    selectedTeacher?.name || specificTeacher?.name || "Teacher Selected";
 
   return (
     <div className="flex flex-col gap-2">
@@ -60,26 +80,25 @@ export function TeacherSelect({ value, onChange, error }: TeacherSelectProps) {
           }
         >
           {value ? (
-            selectedTeacher ? (
-              selectedTeacher.name
-            ) : (
-              "Teacher Selected"
-            )
+            displayTeacherName
           ) : (
             <span className="text-muted-foreground">Select a teacher</span>
           )}
         </ComboboxTrigger>
-        <ComboboxContent className="w-full p-0">
+        <ComboboxContent className="w-full p-0" portal={false}>
           <div className="p-2">
             <ComboboxInput
               placeholder="Search teacher..."
               className="h-9"
-              value={params.search}
-              onChange={(e) => handleSearch(e.target.value)}
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
             />
           </div>
           <ComboboxList>
-            {isLoading ? (
+            {isLoading && !data ? (
               <div className="p-2 space-y-2">
                 <Skeleton className="h-8 w-full" />
                 <Skeleton className="h-8 w-full" />
@@ -89,7 +108,7 @@ export function TeacherSelect({ value, onChange, error }: TeacherSelectProps) {
               <ComboboxEmpty>No teachers found.</ComboboxEmpty>
             ) : (
               <>
-                {teachers.map((user) => (
+                {teachers.map((user: any) => (
                   <ComboboxItem key={user.id} value={user.id}>
                     <span>{user.name}</span>
                     <span className="text-muted-foreground text-xs ml-2">
@@ -106,7 +125,7 @@ export function TeacherSelect({ value, onChange, error }: TeacherSelectProps) {
                       disabled={metadata.page <= 1}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handlePageChange(metadata.page - 1);
+                        setPage((p) => p - 1);
                       }}
                       className="h-7 px-2"
                     >
@@ -121,7 +140,7 @@ export function TeacherSelect({ value, onChange, error }: TeacherSelectProps) {
                       disabled={metadata.page >= metadata.totalPages}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handlePageChange(metadata.page + 1);
+                        setPage((p) => p + 1);
                       }}
                       className="h-7 px-2"
                     >

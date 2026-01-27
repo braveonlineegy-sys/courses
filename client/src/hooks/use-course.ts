@@ -52,8 +52,13 @@ export function useCourse(
   // 2. Create Course
   const createMutation = useMutation({
     mutationFn: async (json: CreateCourse) => {
+      // Clean undefined values to prevent FormData from sending "undefined" string
+      const payload = Object.fromEntries(
+        Object.entries(json).filter(([_, v]) => v !== undefined),
+      );
+
       const res = await client.api.course.$post({
-        json,
+        form: payload as any,
       });
 
       if (!res.ok) {
@@ -72,9 +77,13 @@ export function useCourse(
   // 3. Update Course
   const updateMutation = useMutation({
     mutationFn: async ({ id, json }: { id: string; json: UpdateCourse }) => {
+      const payload = Object.fromEntries(
+        Object.entries(json).filter(([_, v]) => v !== undefined),
+      );
+
       const res = await client.api.course[":id"].$patch({
         param: { id },
-        json,
+        form: payload as any,
       });
 
       if (!res.ok) {

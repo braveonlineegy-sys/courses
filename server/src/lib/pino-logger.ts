@@ -25,6 +25,6 @@ export const pinoInstance = pino(
 export const logger = pinoLogger({
   pino: pinoInstance,
   http: {
-    reqId: () => crypto.randomUUID(),
+    reqId: () => Bun.randomUUIDv7(),
   },
 });

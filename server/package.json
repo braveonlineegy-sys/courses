@@ -19,6 +19,7 @@
     "@prisma/client": "^6.2.1",
     "@scalar/hono-api-reference": "^0.9.32",
     "better-auth": "^1.4.10",
+    "cloudinary": "^2.9.0",
     "hono": "^4.10.8",
     "hono-pino": "^0.10.3",
     "pino": "^10.2.1",
