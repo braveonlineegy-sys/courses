@@ -18,6 +18,8 @@ export const openApiSpec = {
     { name: "Department", description: "Department management" },
     { name: "Level", description: "Level management" },
     { name: "Course", description: "Course management" },
+    { name: "Chapter", description: "Chapter management" },
+    { name: "Lesson", description: "Lesson management" },
   ],
   paths: {
     // ============ AUTH ROUTES ============
@@ -919,6 +921,270 @@ export const openApiSpec = {
           },
         ],
         responses: { 200: { description: "Course deleted" } },
+      },
+    },
+    // ============ CHAPTER ROUTES ============
+    "/api/chapter": {
+      get: {
+        tags: ["Chapter"],
+        summary: "Get chapters by course ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "courseId",
+            in: "query",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "List of chapters" } },
+      },
+      post: {
+        tags: ["Chapter"],
+        summary: "Create a new chapter",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["title", "courseId"],
+                properties: {
+                  title: { type: "string" },
+                  courseId: { type: "string", format: "uuid" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 201: { description: "Chapter created" } },
+      },
+    },
+    "/api/chapter/{id}": {
+      get: {
+        tags: ["Chapter"],
+        summary: "Get chapter by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "Chapter details" } },
+      },
+      patch: {
+        tags: ["Chapter"],
+        summary: "Update chapter",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "Chapter updated" } },
+      },
+      delete: {
+        tags: ["Chapter"],
+        summary: "Delete chapter",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "Chapter deleted" } },
+      },
+    },
+    "/api/chapter/reorder": {
+      post: {
+        tags: ["Chapter"],
+        summary: "Reorder chapters",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["courseId", "chapters"],
+                properties: {
+                  courseId: { type: "string", format: "uuid" },
+                  chapters: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      required: ["id", "position"],
+                      properties: {
+                        id: { type: "string", format: "uuid" },
+                        position: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "Chapters reordered" } },
+      },
+    },
+    // ============ LESSON ROUTES ============
+    "/api/lesson": {
+      get: {
+        tags: ["Lesson"],
+        summary: "Get lessons by chapter ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "chapterId",
+            in: "query",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "List of lessons" } },
+      },
+      post: {
+        tags: ["Lesson"],
+        summary: "Create a new lesson",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["title", "chapterId"],
+                properties: {
+                  title: { type: "string" },
+                  chapterId: { type: "string", format: "uuid" },
+                  description: { type: "string" },
+                  video: { type: "string" },
+                  pdfLink: { type: "string" },
+                  thumbnail: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 201: { description: "Lesson created" } },
+      },
+    },
+    "/api/lesson/{id}": {
+      get: {
+        tags: ["Lesson"],
+        summary: "Get lesson by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "Lesson details" } },
+      },
+      patch: {
+        tags: ["Lesson"],
+        summary: "Update lesson",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  video: { type: "string" },
+                  pdfLink: { type: "string" },
+                  thumbnail: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "Lesson updated" } },
+      },
+      delete: {
+        tags: ["Lesson"],
+        summary: "Delete lesson",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: { 200: { description: "Lesson deleted" } },
+      },
+    },
+    "/api/lesson/reorder": {
+      post: {
+        tags: ["Lesson"],
+        summary: "Reorder lessons",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["chapterId", "lessons"],
+                properties: {
+                  chapterId: { type: "string", format: "uuid" },
+                  lessons: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      required: ["id", "position"],
+                      properties: {
+                        id: { type: "string", format: "uuid" },
+                        position: { type: "integer" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: "Lessons reordered" } },
       },
     },
   },
