@@ -1,9 +1,12 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import {
-  createLessonSchema,
-  updateLessonSchema,
-  reorderLessonsSchema,
+  createLessonValidator,
+  updateLessonValidator,
+  getLessonsByChapterValidator,
+  getLessonValidator,
+  deleteLessonValidator,
+  reorderLessonsValidator,
 } from "./lesson.schema";
 import {
   createLesson,
@@ -18,7 +21,7 @@ import { z } from "zod";
 
 const lessonRoute = new Hono()
   // Create Lesson
-  .post("/", zValidator("json", createLessonSchema), async (c) => {
+  .post("/", createLessonValidator, async (c) => {
     try {
       const data = c.req.valid("json");
       const lesson = await createLesson(data);
@@ -29,22 +32,18 @@ const lessonRoute = new Hono()
   })
 
   // Get Lessons by Chapter
-  .get(
-    "/",
-    zValidator("query", z.object({ chapterId: z.string() })),
-    async (c) => {
-      try {
-        const { chapterId } = c.req.valid("query");
-        const lessons = await getLessonsByChapter(chapterId);
-        return successResponse(c, lessons, "تم جلب الدروس بنجاح");
-      } catch (error) {
-        return errorResponse(c, "فشل في جلب الدروس", 500);
-      }
-    },
-  )
+  .get("/", getLessonsByChapterValidator, async (c) => {
+    try {
+      const { chapterId } = c.req.valid("query");
+      const lessons = await getLessonsByChapter(chapterId);
+      return successResponse(c, lessons, "تم جلب الدروس بنجاح");
+    } catch (error) {
+      return errorResponse(c, "فشل في جلب الدروس", 500);
+    }
+  })
 
   // Get Single Lesson
-  .get("/:id", async (c) => {
+  .get("/:id", getLessonValidator, async (c) => {
     try {
       const id = c.req.param("id");
       const lesson = await getLesson(id);
@@ -58,7 +57,7 @@ const lessonRoute = new Hono()
   })
 
   // Update Lesson
-  .patch("/:id", zValidator("json", updateLessonSchema), async (c) => {
+  .patch("/:id", updateLessonValidator, async (c) => {
     try {
       const id = c.req.param("id");
       const data = c.req.valid("json");
@@ -70,7 +69,7 @@ const lessonRoute = new Hono()
   })
 
   // Delete Lesson
-  .delete("/:id", async (c) => {
+  .delete("/:id", deleteLessonValidator, async (c) => {
     try {
       const id = c.req.param("id");
       await deleteLesson(id);
@@ -81,7 +80,7 @@ const lessonRoute = new Hono()
   })
 
   // Reorder Lessons
-  .post("/reorder", zValidator("json", reorderLessonsSchema), async (c) => {
+  .post("/reorder", reorderLessonsValidator, async (c) => {
     try {
       const data = c.req.valid("json");
       await reorderLessons(data);

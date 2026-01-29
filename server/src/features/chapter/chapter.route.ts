@@ -15,10 +15,17 @@ import {
 } from "./chapter.service";
 import { successResponse, errorResponse } from "../../lib/response";
 import { z } from "zod";
+import {
+  createChapterValidator,
+  updateChapterValidator,
+  getChaptersByCourseValidator,
+  deleteChapterValidator,
+  reorderChaptersValidator,
+} from "./chapter.schema";
 
 const chapterRoute = new Hono()
   // Create Chapter
-  .post("/", zValidator("json", createChapterSchema), async (c) => {
+  .post("/", createChapterValidator, async (c) => {
     try {
       const data = c.req.valid("json");
       const chapter = await createChapter(data);
@@ -31,7 +38,7 @@ const chapterRoute = new Hono()
   // Get Chapters by Course
   .get(
     "/",
-    zValidator("query", z.object({ courseId: z.string() })),
+    getChaptersByCourseValidator,
     async (c) => {
       try {
         const { courseId } = c.req.valid("query");
@@ -44,7 +51,7 @@ const chapterRoute = new Hono()
   )
 
   // Get Single Chapter
-  .get("/:id", async (c) => {
+  .get("/:id", deleteChapterValidator, async (c) => {
     try {
       const id = c.req.param("id");
       const chapter = await getChapter(id);
@@ -58,7 +65,7 @@ const chapterRoute = new Hono()
   })
 
   // Update Chapter
-  .patch("/:id", zValidator("json", updateChapterSchema), async (c) => {
+  .patch("/:id", updateChapterValidator, async (c) => {
     try {
       const id = c.req.param("id");
       const data = c.req.valid("json");
@@ -70,7 +77,7 @@ const chapterRoute = new Hono()
   })
 
   // Delete Chapter
-  .delete("/:id", async (c) => {
+  .delete("/:id", deleteChapterValidator, async (c) => {
     try {
       const id = c.req.param("id");
       await deleteChapter(id);
@@ -81,7 +88,7 @@ const chapterRoute = new Hono()
   })
 
   // Reorder Chapters
-  .post("/reorder", zValidator("json", reorderChaptersSchema), async (c) => {
+  .post("/reorder", reorderChaptersValidator, async (c) => {
     try {
       const data = c.req.valid("json");
       await reorderChapters(data);
