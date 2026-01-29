@@ -108,7 +108,7 @@ export function CourseList({ levelId, teacherId, role }: CourseListProps) {
                 setCourseToEdit(c);
                 setIsDialogOpen(true);
               }}
-              onDelete={(id) => setCourseToDelete(course)}
+              onDelete={() => setCourseToDelete(course)}
             />
           ))
         )}

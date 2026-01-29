@@ -64,6 +64,7 @@ export function TeacherSelect({ value, onChange, error }: TeacherSelectProps) {
     <div className="flex flex-col gap-2">
       <Label>Teacher</Label>
       <Combobox
+        modal={false}
         value={value}
         onValueChange={(val) => {
           onChange(val as string);
@@ -85,11 +86,12 @@ export function TeacherSelect({ value, onChange, error }: TeacherSelectProps) {
             <span className="text-muted-foreground">Select a teacher</span>
           )}
         </ComboboxTrigger>
-        <ComboboxContent className="w-full p-0" portal={false}>
+        <ComboboxContent side="bottom" align="start" className="w-full p-0">
           <div className="p-2">
             <ComboboxInput
               placeholder="Search teacher..."
               className="h-9"
+              autoFocus={false}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);

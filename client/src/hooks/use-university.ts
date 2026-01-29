@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/client";
 import { toast } from "sonner";
 
-async function getAllUniversities(page = 1, search = "") {
+export async function getAllUniversities(page = 1, search = "") {
   const res = await client.api.university.$get({
     query: { page, limit: 10, search },
   });

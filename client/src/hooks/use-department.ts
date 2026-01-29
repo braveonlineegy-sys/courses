@@ -3,7 +3,7 @@ import { client } from "@/lib/client";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
-async function getAllDepartments(collegeId: string) {
+export async function getAllDepartments(collegeId: string) {
   const res = await client.api.department.$get({
     query: {
       collegeId,

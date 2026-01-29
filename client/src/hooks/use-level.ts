@@ -3,7 +3,7 @@ import { client } from "@/lib/client";
 import { toast } from "sonner";
 import { type CreateLevel, type UpdateLevel } from "shared";
 
-async function getLevels(departmentId: string) {
+export async function getLevels(departmentId: string) {
   const res = await client.api.level.$get({
     query: { departmentId },
   });

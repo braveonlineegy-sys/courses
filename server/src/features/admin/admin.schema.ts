@@ -90,3 +90,51 @@ export const getTeachersValidator = zValidator(
 );
 
 export type GetTeachersInput = z.infer<typeof getTeachersSchema>;
+
+// ============ STUDENT SCHEMAS ============
+
+export const getStudentsSchema = z.object({
+  page: z.string().optional().default("1"),
+  limit: z.string().optional().default("10"),
+  isBanned: z.enum(["true", "false", "all"]).optional().default("all"),
+  search: z.string().optional(),
+  levelId: z.string().optional(),
+  departmentId: z.string().optional(),
+  collegeId: z.string().optional(),
+  universityId: z.string().optional(),
+});
+
+export const getStudentsValidator = zValidator(
+  "query",
+  getStudentsSchema,
+  validationHook,
+);
+
+export type GetStudentsInput = z.infer<typeof getStudentsSchema>;
+
+export const updateStudentLevelSchema = z.object({
+  levelId: z.string().nullable(),
+});
+
+export const updateStudentLevelValidator = zValidator(
+  "json",
+  updateStudentLevelSchema,
+  validationHook,
+);
+
+export type UpdateStudentLevelInput = z.infer<typeof updateStudentLevelSchema>;
+
+export const bulkUpdateStudentLevelsSchema = z.object({
+  userIds: z.array(z.string()).min(1, "At least one user ID is required"),
+  levelId: z.string().nullable(),
+});
+
+export const bulkUpdateStudentLevelsValidator = zValidator(
+  "json",
+  bulkUpdateStudentLevelsSchema,
+  validationHook,
+);
+
+export type BulkUpdateStudentLevelsInput = z.infer<
+  typeof bulkUpdateStudentLevelsSchema
+>;

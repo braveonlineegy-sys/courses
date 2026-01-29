@@ -2,7 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/lib/client";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-async function getAllColleges(page = 1, search = "", universityId: string) {
+export async function getAllColleges(
+  page = 1,
+  search = "",
+  universityId: string,
+) {
   const res = await client.api.college.$get({
     query: {
       universityId,

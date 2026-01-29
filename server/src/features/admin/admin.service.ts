@@ -217,6 +217,7 @@ export const unbanUser = async (userId: string) => {
     data: {
       isBanned: false,
       banReason: null,
+      deviceId: null, // Reset device so user can login from a new mobile
     },
   });
 };
@@ -292,5 +293,204 @@ export const rejectRecoveryRequest = async (
       status: RecoveryStatus.REJECTED,
       adminNote,
     },
+  });
+};
+
+// ============ STUDENT MANAGEMENT ============
+
+// Get all students with pagination and filtering
+export const getAllStudents = async (params: {
+  page: number;
+  limit: number;
+  isBanned?: "true" | "false" | "all";
+  search?: string;
+  levelId?: string;
+  departmentId?: string;
+  collegeId?: string;
+  universityId?: string;
+}) => {
+  const {
+    page,
+    limit,
+    isBanned,
+    search,
+    levelId,
+    departmentId,
+    collegeId,
+    universityId,
+  } = params;
+  const skip = (page - 1) * limit;
+
+  const where: any = {
+    role: "USER",
+  };
+
+  if (isBanned && isBanned !== "all") {
+    where.isBanned = isBanned === "true";
+  }
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { email: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  // Filter by level hierarchy
+  if (levelId) {
+    where.levelId = levelId;
+  } else if (departmentId) {
+    // Filter by department - get all levels in this department
+    where.level = { departmentId: departmentId };
+  } else if (collegeId) {
+    // Filter by college - get all levels in departments in this college
+    where.level = { department: { collegeId: collegeId } };
+  } else if (universityId) {
+    // Filter by university - get all levels in departments in colleges in this university
+    where.level = { department: { college: { universityId: universityId } } };
+  }
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        image: true,
+        phoneNumber: true,
+        isBanned: true,
+        createdAt: true,
+        level: {
+          select: {
+            id: true,
+            name: true,
+            department: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            courseAccesses: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return {
+    users,
+    metadata: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
+// Get student by ID with full details including purchased courses
+export const getStudentById = async (id: string) => {
+  return prisma.user.findUnique({
+    where: { id, role: "USER" },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      image: true,
+      phoneNumber: true,
+      isBanned: true,
+      banReason: true,
+      createdAt: true,
+      deviceId: true,
+      level: {
+        select: {
+          id: true,
+          name: true,
+          department: {
+            select: {
+              id: true,
+              name: true,
+              college: {
+                select: {
+                  id: true,
+                  name: true,
+                  university: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      courseAccesses: {
+        select: {
+          id: true,
+          startsAt: true,
+          expiresAt: true,
+          isActive: true,
+          grantedBy: true,
+          course: {
+            select: {
+              id: true,
+              title: true,
+              price: true,
+              teacher: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              level: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      _count: {
+        select: {
+          courseAccesses: true,
+          lessonProgress: true,
+          quizAttempts: true,
+        },
+      },
+    },
+  });
+};
+
+// Update a single student's level
+export const updateStudentLevel = async (
+  userId: string,
+  levelId: string | null,
+) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { levelId },
+  });
+};
+
+// Bulk update multiple students' levels
+export const bulkUpdateStudentLevels = async (
+  userIds: string[],
+  levelId: string | null,
+) => {
+  return prisma.user.updateMany({
+    where: { id: { in: userIds } },
+    data: { levelId },
   });
 };

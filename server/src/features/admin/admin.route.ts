@@ -15,6 +15,10 @@ import {
   deleteUser,
   updateUser,
   changeUserPassword,
+  getAllStudents,
+  getStudentById,
+  updateStudentLevel,
+  bulkUpdateStudentLevels,
 } from "./admin.service";
 import {
   createUserValidator,
@@ -22,6 +26,9 @@ import {
   updateUserValidator,
   changePasswordValidator,
   getTeachersValidator,
+  getStudentsValidator,
+  updateStudentLevelValidator,
+  bulkUpdateStudentLevelsValidator,
 } from "./admin.schema";
 
 // ============ ADMIN ROUTES ============
@@ -188,4 +195,84 @@ export const adminRoute = new Hono()
       success: true,
       message: "User deleted successfully",
     });
-  });
+  })
+
+  // ============ STUDENT ROUTES ============
+
+  // GET ALL STUDENTS
+  .get("/students", requireAdmin, getStudentsValidator, async (c) => {
+    const {
+      page,
+      limit,
+      isBanned,
+      search,
+      levelId,
+      departmentId,
+      collegeId,
+      universityId,
+    } = c.req.valid("query");
+    const result = await getAllStudents({
+      page: parseInt(page),
+      limit: parseInt(limit),
+      isBanned: isBanned as "true" | "false" | "all",
+      search,
+      levelId,
+      departmentId,
+      collegeId,
+      universityId,
+    });
+    return c.json({
+      success: true,
+      message: "Students retrieved successfully",
+      data: result,
+    });
+  })
+
+  // GET STUDENT BY ID
+  .get("/students/:id", requireAdmin, async (c) => {
+    const id = c.req.param("id");
+    const student = await getStudentById(id);
+
+    if (!student) {
+      throw new HTTPException(404, { message: "Student not found" });
+    }
+
+    return c.json({
+      success: true,
+      message: "Student retrieved successfully",
+      data: { student },
+    });
+  })
+
+  // UPDATE STUDENT LEVEL
+  .patch(
+    "/students/:id/level",
+    requireAdmin,
+    updateStudentLevelValidator,
+    async (c) => {
+      const id = c.req.param("id");
+      const { levelId } = c.req.valid("json");
+      const student = await updateStudentLevel(id, levelId);
+      return c.json({
+        success: true,
+        message: "Student level updated successfully",
+        data: { student },
+      });
+    },
+  )
+
+  // BULK UPDATE STUDENT LEVELS
+  .patch(
+    "/students/bulk-level",
+    requireAdmin,
+    bulkUpdateStudentLevelsValidator,
+    async (c) => {
+      const { userIds, levelId } = c.req.valid("json");
+      const result = await bulkUpdateStudentLevels(userIds, levelId);
+      return c.json({
+        success: true,
+        message: `Updated ${result.count} students' levels successfully`,
+        data: { count: result.count },
+      });
+    },
+  );
