@@ -5,3 +5,5 @@ export * from "./common.zod";
 export * from "./college.zod";
 export * from "./level.zod";
 export * from "./course.zod";
+export * from "./chapter.zod";
+export * from "./lesson.zod";

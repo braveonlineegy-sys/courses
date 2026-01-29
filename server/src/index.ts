@@ -13,6 +13,8 @@ import departmentRoute from "./features/department/department.route";
 import collegeRoute from "./features/college/college.route";
 import levelRoute from "./features/level/level.route";
 import courseRoute from "./features/course/course.route";
+import chapterRoute from "./features/chapter/chapter.route";
+import lessonRoute from "./features/lesson/lesson.route";
 import env from "./lib/config";
 
 // Create base app
@@ -48,7 +50,13 @@ const routes = app
   .route("/level", levelRoute)
 
   // Course routes
-  .route("/course", courseRoute);
+  .route("/course", courseRoute)
+
+  // Chapter routes
+  .route("/chapter", chapterRoute)
+
+  // Lesson routes
+  .route("/lesson", lessonRoute);
 
 // ============ OPENAPI DOCS ============
 

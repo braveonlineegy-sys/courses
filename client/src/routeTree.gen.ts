@@ -21,13 +21,14 @@ import { Route as TeacherCoursesIndexRouteImport } from './routes/teacher/course
 import { Route as AdminUniversitiesIndexRouteImport } from './routes/admin/universities/index'
 import { Route as AdminTeachersIndexRouteImport } from './routes/admin/teachers/index'
 import { Route as AdminStudentsIndexRouteImport } from './routes/admin/students/index'
-import { Route as TeacherCoursesCreateRouteImport } from './routes/teacher/courses/create'
+import { Route as TeacherCoursesCourseIdIndexRouteImport } from './routes/teacher/courses/$courseId/index'
 import { Route as AdminUniversitiesUniversityIdIndexRouteImport } from './routes/admin/universities/$universityId/index'
 import { Route as AdminTeachersTeacherIdIndexRouteImport } from './routes/admin/teachers/$teacherId/index'
 import { Route as AdminStudentsStudentIdIndexRouteImport } from './routes/admin/students/$studentId/index'
 import { Route as AdminUniversitiesUniversityIdCollegeIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/index'
 import { Route as AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/$departmentId/index'
 import { Route as AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/$departmentId/$levelId/index'
+import { Route as AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/index'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -89,11 +90,12 @@ const AdminStudentsIndexRoute = AdminStudentsIndexRouteImport.update({
   path: '/students/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const TeacherCoursesCreateRoute = TeacherCoursesCreateRouteImport.update({
-  id: '/teacher/courses/create',
-  path: '/teacher/courses/create',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const TeacherCoursesCourseIdIndexRoute =
+  TeacherCoursesCourseIdIndexRouteImport.update({
+    id: '/teacher/courses/$courseId/',
+    path: '/teacher/courses/$courseId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminUniversitiesUniversityIdIndexRoute =
   AdminUniversitiesUniversityIdIndexRouteImport.update({
     id: '/universities/$universityId/',
@@ -132,6 +134,14 @@ const AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute =
       getParentRoute: () => AdminRouteRoute,
     } as any,
   )
+const AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute =
+  AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRouteImport.update(
+    {
+      id: '/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/',
+      path: '/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/',
+      getParentRoute: () => AdminRouteRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -142,7 +152,6 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/admin/': typeof AdminIndexRoute
   '/teacher': typeof TeacherIndexRoute
-  '/teacher/courses/create': typeof TeacherCoursesCreateRoute
   '/admin/students': typeof AdminStudentsIndexRoute
   '/admin/teachers': typeof AdminTeachersIndexRoute
   '/admin/universities': typeof AdminUniversitiesIndexRoute
@@ -150,9 +159,11 @@ export interface FileRoutesByFullPath {
   '/admin/students/$studentId': typeof AdminStudentsStudentIdIndexRoute
   '/admin/teachers/$teacherId': typeof AdminTeachersTeacherIdIndexRoute
   '/admin/universities/$universityId': typeof AdminUniversitiesUniversityIdIndexRoute
+  '/teacher/courses/$courseId': typeof TeacherCoursesCourseIdIndexRoute
   '/admin/universities/$universityId/$collegeId': typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/$levelId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute
+  '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -162,7 +173,6 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/admin': typeof AdminIndexRoute
   '/teacher': typeof TeacherIndexRoute
-  '/teacher/courses/create': typeof TeacherCoursesCreateRoute
   '/admin/students': typeof AdminStudentsIndexRoute
   '/admin/teachers': typeof AdminTeachersIndexRoute
   '/admin/universities': typeof AdminUniversitiesIndexRoute
@@ -170,9 +180,11 @@ export interface FileRoutesByTo {
   '/admin/students/$studentId': typeof AdminStudentsStudentIdIndexRoute
   '/admin/teachers/$teacherId': typeof AdminTeachersTeacherIdIndexRoute
   '/admin/universities/$universityId': typeof AdminUniversitiesUniversityIdIndexRoute
+  '/teacher/courses/$courseId': typeof TeacherCoursesCourseIdIndexRoute
   '/admin/universities/$universityId/$collegeId': typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/$levelId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute
+  '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -184,7 +196,6 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/admin/': typeof AdminIndexRoute
   '/teacher/': typeof TeacherIndexRoute
-  '/teacher/courses/create': typeof TeacherCoursesCreateRoute
   '/admin/students/': typeof AdminStudentsIndexRoute
   '/admin/teachers/': typeof AdminTeachersIndexRoute
   '/admin/universities/': typeof AdminUniversitiesIndexRoute
@@ -192,9 +203,11 @@ export interface FileRoutesById {
   '/admin/students/$studentId/': typeof AdminStudentsStudentIdIndexRoute
   '/admin/teachers/$teacherId/': typeof AdminTeachersTeacherIdIndexRoute
   '/admin/universities/$universityId/': typeof AdminUniversitiesUniversityIdIndexRoute
+  '/teacher/courses/$courseId/': typeof TeacherCoursesCourseIdIndexRoute
   '/admin/universities/$universityId/$collegeId/': typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute
+  '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,7 +220,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin/'
     | '/teacher'
-    | '/teacher/courses/create'
     | '/admin/students'
     | '/admin/teachers'
     | '/admin/universities'
@@ -215,9 +227,11 @@ export interface FileRouteTypes {
     | '/admin/students/$studentId'
     | '/admin/teachers/$teacherId'
     | '/admin/universities/$universityId'
+    | '/teacher/courses/$courseId'
     | '/admin/universities/$universityId/$collegeId'
     | '/admin/universities/$universityId/$collegeId/$departmentId'
     | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId'
+    | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -227,7 +241,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin'
     | '/teacher'
-    | '/teacher/courses/create'
     | '/admin/students'
     | '/admin/teachers'
     | '/admin/universities'
@@ -235,9 +248,11 @@ export interface FileRouteTypes {
     | '/admin/students/$studentId'
     | '/admin/teachers/$teacherId'
     | '/admin/universities/$universityId'
+    | '/teacher/courses/$courseId'
     | '/admin/universities/$universityId/$collegeId'
     | '/admin/universities/$universityId/$collegeId/$departmentId'
     | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId'
+    | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId'
   id:
     | '__root__'
     | '/'
@@ -248,7 +263,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin/'
     | '/teacher/'
-    | '/teacher/courses/create'
     | '/admin/students/'
     | '/admin/teachers/'
     | '/admin/universities/'
@@ -256,9 +270,11 @@ export interface FileRouteTypes {
     | '/admin/students/$studentId/'
     | '/admin/teachers/$teacherId/'
     | '/admin/universities/$universityId/'
+    | '/teacher/courses/$courseId/'
     | '/admin/universities/$universityId/$collegeId/'
     | '/admin/universities/$universityId/$collegeId/$departmentId/'
     | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/'
+    | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -269,8 +285,8 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TeacherIndexRoute: typeof TeacherIndexRoute
-  TeacherCoursesCreateRoute: typeof TeacherCoursesCreateRoute
   TeacherCoursesIndexRoute: typeof TeacherCoursesIndexRoute
+  TeacherCoursesCourseIdIndexRoute: typeof TeacherCoursesCourseIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -359,11 +375,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStudentsIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
-    '/teacher/courses/create': {
-      id: '/teacher/courses/create'
-      path: '/teacher/courses/create'
-      fullPath: '/teacher/courses/create'
-      preLoaderRoute: typeof TeacherCoursesCreateRouteImport
+    '/teacher/courses/$courseId/': {
+      id: '/teacher/courses/$courseId/'
+      path: '/teacher/courses/$courseId'
+      fullPath: '/teacher/courses/$courseId'
+      preLoaderRoute: typeof TeacherCoursesCourseIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/universities/$universityId/': {
@@ -408,6 +424,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/': {
+      id: '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/'
+      path: '/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId'
+      fullPath: '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId'
+      preLoaderRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
   }
 }
 
@@ -422,6 +445,7 @@ interface AdminRouteRouteChildren {
   AdminUniversitiesUniversityIdCollegeIdIndexRoute: typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
   AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
   AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute
+  AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
@@ -439,6 +463,8 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
     AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute,
   AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute:
     AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute,
+  AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute:
+    AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
@@ -453,8 +479,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TeacherIndexRoute: TeacherIndexRoute,
-  TeacherCoursesCreateRoute: TeacherCoursesCreateRoute,
   TeacherCoursesIndexRoute: TeacherCoursesIndexRoute,
+  TeacherCoursesCourseIdIndexRoute: TeacherCoursesCourseIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
