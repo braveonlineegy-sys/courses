@@ -52,9 +52,9 @@ export function useLesson(chapterId?: string) {
 
   // 2. Create Lesson
   const createMutation = useMutation({
-    mutationFn: async (data: CreateLesson) => {
+    mutationFn: async (data: any) => {
       const res = await client.api.lesson.$post({
-        json: data,
+        form: data,
       });
 
       if (!res.ok) {
@@ -73,10 +73,10 @@ export function useLesson(chapterId?: string) {
 
   // 3. Update Lesson
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateLesson }) => {
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const res = await client.api.lesson[":id"].$patch({
         param: { id },
-        json: data,
+        form: data,
       });
 
       if (!res.ok) {

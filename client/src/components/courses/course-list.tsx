@@ -10,9 +10,20 @@ interface CourseListProps {
   levelId?: string;
   teacherId?: string;
   role: "ADMIN" | "TEACHER";
+  // For admin navigation - hierarchy IDs
+  universityId?: string;
+  collegeId?: string;
+  departmentId?: string;
 }
 
-export function CourseList({ levelId, teacherId, role }: CourseListProps) {
+export function CourseList({
+  levelId,
+  teacherId,
+  role,
+  universityId,
+  collegeId,
+  departmentId,
+}: CourseListProps) {
   const [page, setPage] = useState(1);
   const { coursesQuery, deleteMutation } = useCourse(
     page,
@@ -109,6 +120,11 @@ export function CourseList({ levelId, teacherId, role }: CourseListProps) {
                 setIsDialogOpen(true);
               }}
               onDelete={() => setCourseToDelete(course)}
+              role={role === "ADMIN" ? "admin" : "teacher"}
+              universityId={universityId}
+              collegeId={collegeId}
+              departmentId={departmentId}
+              levelId={levelId}
             />
           ))
         )}

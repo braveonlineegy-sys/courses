@@ -22,6 +22,7 @@ export const createLesson = async (data: CreateLesson) => {
       video: data.video || null,
       pdfLink: data.pdfLink || null,
       thumbnail: data.thumbnail || null,
+      isFree: data.isFree ?? false,
       position: newPosition,
     },
   });
@@ -40,6 +41,7 @@ export const updateLesson = async (id: string, data: UpdateLesson) => {
       ...(data.thumbnail !== undefined && {
         thumbnail: data.thumbnail || null,
       }),
+      ...(data.isFree !== undefined && { isFree: data.isFree }),
     },
   });
 };

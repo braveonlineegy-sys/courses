@@ -6,11 +6,25 @@ export const Route = createFileRoute(
 )({
   component: RouteComponent,
   loader: async ({ params }) => {
-    return { levelId: params.levelId };
+    return {
+      universityId: params.universityId,
+      collegeId: params.collegeId,
+      departmentId: params.departmentId,
+      levelId: params.levelId,
+    };
   },
 });
 
 function RouteComponent() {
-  const { levelId } = Route.useLoaderData();
-  return <CourseList levelId={levelId} role="ADMIN" />;
+  const { universityId, collegeId, departmentId, levelId } =
+    Route.useLoaderData();
+  return (
+    <CourseList
+      levelId={levelId}
+      role="ADMIN"
+      universityId={universityId}
+      collegeId={collegeId}
+      departmentId={departmentId}
+    />
+  );
 }

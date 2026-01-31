@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,42 +9,73 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
-import { useChapter } from "@/hooks/use-chapter";
+import { Plus, Pencil } from "lucide-react";
+import { useChapter, type ChapterType } from "@/hooks/use-chapter";
 
 interface ChapterFormProps {
   courseId: string;
+  initialData?: ChapterType;
+  children?: React.ReactNode;
 }
 
-export function ChapterForm({ courseId }: ChapterFormProps) {
+export function ChapterForm({
+  courseId,
+  initialData,
+  children,
+}: ChapterFormProps) {
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const { createMutation } = useChapter(courseId);
+  const [title, setTitle] = useState(initialData?.title || "");
+  const { createMutation, updateMutation } = useChapter(courseId);
+
+  useEffect(() => {
+    if (open && initialData) {
+      setTitle(initialData.title);
+    } else if (open && !initialData) {
+      setTitle("");
+    }
+  }, [open, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    await createMutation.mutateAsync({
-      title: title.trim(),
-      courseId,
-    });
+    if (initialData) {
+      await updateMutation.mutateAsync({
+        id: initialData.id,
+        data: {
+          title: title.trim(),
+        },
+      });
+    } else {
+      await createMutation.mutateAsync({
+        title: title.trim(),
+        courseId,
+      });
+    }
 
-    setTitle("");
+    if (!initialData) setTitle("");
     setOpen(false);
   };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
-          <Plus className="h-4 w-4 ml-1" />
-          إضافة فصل
-        </Button>
+        {children ? (
+          children
+        ) : (
+          <Button size="sm">
+            <Plus className="h-4 w-4 ml-1" />
+            إضافة فصل
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent dir="rtl">
         <DialogHeader>
-          <DialogTitle>إضافة فصل جديد</DialogTitle>
+          <DialogTitle>
+            {initialData ? "تعديل الفصل" : "إضافة فصل جديد"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -65,8 +96,8 @@ export function ChapterForm({ courseId }: ChapterFormProps) {
             >
               إلغاء
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "جاري الإضافة..." : "إضافة"}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "جاري الحفظ..." : "حفظ"}
             </Button>
           </div>
         </form>

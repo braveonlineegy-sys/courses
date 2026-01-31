@@ -18,15 +18,47 @@ import {
 } from "./lesson.service";
 import { successResponse, errorResponse } from "../../lib/response";
 import { z } from "zod";
+import {
+  deleteFromCloudinary,
+  getPublicIdFromUrl,
+  uploadToCloudinary,
+} from "../../lib/cloudinary";
 
 const lessonRoute = new Hono()
   // Create Lesson
   .post("/", createLessonValidator, async (c) => {
     try {
-      const data = c.req.valid("json");
-      const lesson = await createLesson(data);
+      const data = c.req.valid("form");
+
+      let thumbnail: string | undefined = undefined;
+      if (data.thumbnail instanceof File) {
+        const uploadResult = await uploadToCloudinary(
+          data.thumbnail,
+          "lessons",
+        );
+        thumbnail = uploadResult.secure_url;
+      } else if (typeof data.thumbnail === "string" && data.thumbnail) {
+        // If it's a string (e.g. from frontend state if not changed but that's unlikely for create), use it.
+        // But usually create sends File. If it sends string URL, pass it through?
+        thumbnail = data.thumbnail;
+      }
+
+      let pdfLink: string | undefined = undefined;
+      if (data.pdfLink instanceof File) {
+        const uploadResult = await uploadToCloudinary(data.pdfLink, "lessons");
+        pdfLink = uploadResult.secure_url;
+      } else if (typeof data.pdfLink === "string" && data.pdfLink) {
+        pdfLink = data.pdfLink;
+      }
+
+      const lesson = await createLesson({
+        ...data,
+        thumbnail,
+        pdfLink,
+      });
       return successResponse(c, lesson, "تم إنشاء الدرس بنجاح", 201);
     } catch (error) {
+      console.error("Create Lesson Error:", error);
       return errorResponse(c, "فشل في إنشاء الدرس", 500);
     }
   })
@@ -60,10 +92,56 @@ const lessonRoute = new Hono()
   .patch("/:id", updateLessonValidator, async (c) => {
     try {
       const id = c.req.param("id");
-      const data = c.req.valid("json");
-      const lesson = await updateLesson(id, data);
+      const data = c.req.valid("form");
+
+      // Check existence
+      const existing = await getLesson(id);
+      if (!existing) {
+        return errorResponse(c, "الدرس غير موجود", 404);
+      }
+
+      let thumbnail = existing.thumbnail;
+      if (data.thumbnail instanceof File) {
+        const uploadResult = await uploadToCloudinary(
+          data.thumbnail,
+          "lessons",
+        );
+        thumbnail = uploadResult.secure_url;
+
+        // Delete old
+        if (existing.thumbnail) {
+          const publicId = getPublicIdFromUrl(existing.thumbnail);
+          if (publicId) await deleteFromCloudinary(publicId);
+        }
+      } else if (data.thumbnail === null) {
+        // Explicit removal (if supported by frontend sending null/empty)
+        // Note: Form data doesn't support null well, usually empty string.
+        // If undefined, we keep existing.
+        // If we want to support delete, frontend should send specific indicator or empty string?
+        // Current logic: if 'thumbnail' key is missing, undefined -> no change.
+        // If file, change.
+      }
+
+      let pdfLink = existing.pdfLink;
+      if (data.pdfLink instanceof File) {
+        const uploadResult = await uploadToCloudinary(data.pdfLink, "lessons");
+        pdfLink = uploadResult.secure_url;
+
+        // Delete old
+        if (existing.pdfLink) {
+          const publicId = getPublicIdFromUrl(existing.pdfLink);
+          if (publicId) await deleteFromCloudinary(publicId);
+        }
+      }
+
+      const lesson = await updateLesson(id, {
+        ...data,
+        thumbnail: thumbnail || undefined,
+        pdfLink: pdfLink || undefined,
+      });
       return successResponse(c, lesson, "تم تحديث الدرس بنجاح");
     } catch (error) {
+      console.error("Update Lesson Error:", error);
       return errorResponse(c, "فشل في تحديث الدرس", 500);
     }
   })
@@ -72,6 +150,20 @@ const lessonRoute = new Hono()
   .delete("/:id", deleteLessonValidator, async (c) => {
     try {
       const id = c.req.param("id");
+
+      const existing = await getLesson(id);
+      if (existing) {
+        // Delete files
+        if (existing.thumbnail) {
+          const publicId = getPublicIdFromUrl(existing.thumbnail);
+          if (publicId) await deleteFromCloudinary(publicId);
+        }
+        if (existing.pdfLink) {
+          const publicId = getPublicIdFromUrl(existing.pdfLink);
+          if (publicId) await deleteFromCloudinary(publicId);
+        }
+      }
+
       await deleteLesson(id);
       return successResponse(c, null, "تم حذف الدرس بنجاح");
     } catch (error) {

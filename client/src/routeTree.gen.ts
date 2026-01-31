@@ -25,10 +25,12 @@ import { Route as TeacherCoursesCourseIdIndexRouteImport } from './routes/teache
 import { Route as AdminUniversitiesUniversityIdIndexRouteImport } from './routes/admin/universities/$universityId/index'
 import { Route as AdminTeachersTeacherIdIndexRouteImport } from './routes/admin/teachers/$teacherId/index'
 import { Route as AdminStudentsStudentIdIndexRouteImport } from './routes/admin/students/$studentId/index'
+import { Route as TeacherCoursesCourseIdQuizIdIndexRouteImport } from './routes/teacher/courses/$courseId/$quizId/index'
 import { Route as AdminUniversitiesUniversityIdCollegeIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/index'
 import { Route as AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/$departmentId/index'
 import { Route as AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/$departmentId/$levelId/index'
 import { Route as AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/index'
+import { Route as AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRouteImport } from './routes/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId/index'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -114,6 +116,12 @@ const AdminStudentsStudentIdIndexRoute =
     path: '/students/$studentId/',
     getParentRoute: () => AdminRouteRoute,
   } as any)
+const TeacherCoursesCourseIdQuizIdIndexRoute =
+  TeacherCoursesCourseIdQuizIdIndexRouteImport.update({
+    id: '/teacher/courses/$courseId/$quizId/',
+    path: '/teacher/courses/$courseId/$quizId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminUniversitiesUniversityIdCollegeIdIndexRoute =
   AdminUniversitiesUniversityIdCollegeIdIndexRouteImport.update({
     id: '/universities/$universityId/$collegeId/',
@@ -142,6 +150,14 @@ const AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRout
       getParentRoute: () => AdminRouteRoute,
     } as any,
   )
+const AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRoute =
+  AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRouteImport.update(
+    {
+      id: '/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId/',
+      path: '/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId/',
+      getParentRoute: () => AdminRouteRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -161,9 +177,11 @@ export interface FileRoutesByFullPath {
   '/admin/universities/$universityId': typeof AdminUniversitiesUniversityIdIndexRoute
   '/teacher/courses/$courseId': typeof TeacherCoursesCourseIdIndexRoute
   '/admin/universities/$universityId/$collegeId': typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
+  '/teacher/courses/$courseId/$quizId': typeof TeacherCoursesCourseIdQuizIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/$levelId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute
+  '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -182,9 +200,11 @@ export interface FileRoutesByTo {
   '/admin/universities/$universityId': typeof AdminUniversitiesUniversityIdIndexRoute
   '/teacher/courses/$courseId': typeof TeacherCoursesCourseIdIndexRoute
   '/admin/universities/$universityId/$collegeId': typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
+  '/teacher/courses/$courseId/$quizId': typeof TeacherCoursesCourseIdQuizIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/$levelId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute
+  '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -205,9 +225,11 @@ export interface FileRoutesById {
   '/admin/universities/$universityId/': typeof AdminUniversitiesUniversityIdIndexRoute
   '/teacher/courses/$courseId/': typeof TeacherCoursesCourseIdIndexRoute
   '/admin/universities/$universityId/$collegeId/': typeof AdminUniversitiesUniversityIdCollegeIdIndexRoute
+  '/teacher/courses/$courseId/$quizId/': typeof TeacherCoursesCourseIdQuizIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute
   '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute
+  '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId/': typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -229,9 +251,11 @@ export interface FileRouteTypes {
     | '/admin/universities/$universityId'
     | '/teacher/courses/$courseId'
     | '/admin/universities/$universityId/$collegeId'
+    | '/teacher/courses/$courseId/$quizId'
     | '/admin/universities/$universityId/$collegeId/$departmentId'
     | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId'
     | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId'
+    | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -250,9 +274,11 @@ export interface FileRouteTypes {
     | '/admin/universities/$universityId'
     | '/teacher/courses/$courseId'
     | '/admin/universities/$universityId/$collegeId'
+    | '/teacher/courses/$courseId/$quizId'
     | '/admin/universities/$universityId/$collegeId/$departmentId'
     | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId'
     | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId'
+    | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId'
   id:
     | '__root__'
     | '/'
@@ -272,9 +298,11 @@ export interface FileRouteTypes {
     | '/admin/universities/$universityId/'
     | '/teacher/courses/$courseId/'
     | '/admin/universities/$universityId/$collegeId/'
+    | '/teacher/courses/$courseId/$quizId/'
     | '/admin/universities/$universityId/$collegeId/$departmentId/'
     | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/'
     | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/'
+    | '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -287,6 +315,7 @@ export interface RootRouteChildren {
   TeacherIndexRoute: typeof TeacherIndexRoute
   TeacherCoursesIndexRoute: typeof TeacherCoursesIndexRoute
   TeacherCoursesCourseIdIndexRoute: typeof TeacherCoursesCourseIdIndexRoute
+  TeacherCoursesCourseIdQuizIdIndexRoute: typeof TeacherCoursesCourseIdQuizIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -403,6 +432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStudentsStudentIdIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/teacher/courses/$courseId/$quizId/': {
+      id: '/teacher/courses/$courseId/$quizId/'
+      path: '/teacher/courses/$courseId/$quizId'
+      fullPath: '/teacher/courses/$courseId/$quizId'
+      preLoaderRoute: typeof TeacherCoursesCourseIdQuizIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/universities/$universityId/$collegeId/': {
       id: '/admin/universities/$universityId/$collegeId/'
       path: '/universities/$universityId/$collegeId'
@@ -431,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId/': {
+      id: '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId/'
+      path: '/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId'
+      fullPath: '/admin/universities/$universityId/$collegeId/$departmentId/$levelId/$courseId/$quizId'
+      preLoaderRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
   }
 }
 
@@ -446,6 +489,7 @@ interface AdminRouteRouteChildren {
   AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdIndexRoute
   AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute
   AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute
+  AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRoute: typeof AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
@@ -465,6 +509,8 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
     AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdIndexRoute,
   AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute:
     AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdIndexRoute,
+  AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRoute:
+    AdminUniversitiesUniversityIdCollegeIdDepartmentIdLevelIdCourseIdQuizIdIndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
@@ -481,6 +527,8 @@ const rootRouteChildren: RootRouteChildren = {
   TeacherIndexRoute: TeacherIndexRoute,
   TeacherCoursesIndexRoute: TeacherCoursesIndexRoute,
   TeacherCoursesCourseIdIndexRoute: TeacherCoursesCourseIdIndexRoute,
+  TeacherCoursesCourseIdQuizIdIndexRoute:
+    TeacherCoursesCourseIdQuizIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

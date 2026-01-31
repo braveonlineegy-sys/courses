@@ -1,4 +1,13 @@
-// Re-export from shared for consistency
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import { validationHook } from "../../lib/zod";
+import {
+  getLessonSchema,
+  getLessonsByChapterSchema,
+  deleteLessonSchema,
+  reorderLessonsSchema,
+} from "shared";
+
 export {
   type CreateLesson,
   type UpdateLesson,
@@ -7,27 +16,34 @@ export {
   type DeleteLesson,
   type ReorderLessons,
 } from "shared";
-import {
-  createLessonSchema,
-  updateLessonSchema,
-  getLessonsByChapterSchema,
-  getLessonSchema,
-  deleteLessonSchema,
-  reorderLessonsSchema,
-} from "shared";
 
-import { validationHook } from "../../lib/zod";
-import { zValidator } from "@hono/zod-validator";
+// Form schemas for file uploads
+export const createLessonFormSchema = z.object({
+  title: z.string().min(1),
+  chapterId: z.string().uuid(),
+  description: z.string().optional(),
+  video: z.string().optional(),
+  pdfLink: z.any().optional(), // File
+  thumbnail: z.any().optional(), // File
+  isFree: z
+    .string()
+    .transform((v) => v === "true")
+    .optional(), // Boolean as string in form data
+});
+
+export const updateLessonFormSchema = createLessonFormSchema
+  .partial()
+  .omit({ chapterId: true });
 
 export const createLessonValidator = zValidator(
-  "json",
-  createLessonSchema,
+  "form",
+  createLessonFormSchema,
   validationHook,
 );
 
 export const updateLessonValidator = zValidator(
-  "json",
-  updateLessonSchema,
+  "form",
+  updateLessonFormSchema,
   validationHook,
 );
 

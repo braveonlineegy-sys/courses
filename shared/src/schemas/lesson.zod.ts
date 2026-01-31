@@ -8,6 +8,7 @@ export const createLessonSchema = z.object({
   video: z.string().url("رابط الفيديو غير صالح").optional().or(z.literal("")),
   pdfLink: z.string().url("رابط PDF غير صالح").optional().or(z.literal("")),
   thumbnail: z.string().optional(),
+  isFree: z.boolean().optional(),
 });
 
 // ============ UPDATE ============
@@ -17,6 +18,7 @@ export const updateLessonSchema = z.object({
   video: z.string().url("رابط الفيديو غير صالح").optional().or(z.literal("")),
   pdfLink: z.string().url("رابط PDF غير صالح").optional().or(z.literal("")),
   thumbnail: z.string().optional(),
+  isFree: z.boolean().optional(),
 });
 
 // ============ GET ============

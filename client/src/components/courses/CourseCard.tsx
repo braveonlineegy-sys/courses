@@ -17,14 +17,48 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { type CourseType } from "@/hooks/use-course";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Link } from "@tanstack/react-router";
 
 interface CourseCardProps {
   course: CourseType;
   onEdit?: (course: CourseType) => void;
   onDelete?: (courseId: string) => void;
+  role?: "admin" | "teacher";
+  // For admin navigation - hierarchy IDs
+  universityId?: string;
+  collegeId?: string;
+  departmentId?: string;
+  levelId?: string;
 }
 
-export function CourseCard({ course, onEdit, onDelete }: CourseCardProps) {
+export function CourseCard({
+  course,
+  onEdit,
+  onDelete,
+  role,
+  universityId,
+  collegeId,
+  departmentId,
+  levelId,
+}: CourseCardProps) {
+  // Build navigation URL based on role
+  const getCourseUrl = () => {
+    if (
+      role === "admin" &&
+      universityId &&
+      collegeId &&
+      departmentId &&
+      levelId
+    ) {
+      return `/admin/universities/${universityId}/${collegeId}/${departmentId}/${levelId}/${course.id}`;
+    }
+    if (role === "teacher") {
+      return `/teacher/courses/${course.id}`;
+    }
+    return undefined;
+  };
+
+  const courseUrl = getCourseUrl();
   // Clean image URL logic
   const imageUrl = course.fileKey?.startsWith("http")
     ? course.fileKey
@@ -32,7 +66,7 @@ export function CourseCard({ course, onEdit, onDelete }: CourseCardProps) {
       ? `https://utfs.io/f/${course.fileKey}`
       : null;
 
-  return (
+  const cardContent = (
     <Card className="group relative flex flex-col overflow-hidden border-border/50 bg-card transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10">
       {/* 1. Image Section with Grayscale Hover Effect */}
       <div className="aspect-video overflow-hidden relative">
@@ -135,4 +169,15 @@ export function CourseCard({ course, onEdit, onDelete }: CourseCardProps) {
       </CardFooter>
     </Card>
   );
+
+  // Wrap with Link if courseUrl exists
+  if (courseUrl) {
+    return (
+      <Link to={courseUrl} className="block">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }

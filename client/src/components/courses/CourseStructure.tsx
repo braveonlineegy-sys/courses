@@ -29,6 +29,7 @@ import {
   ChevronRight,
   FileTextIcon,
   GripVertical,
+  Pencil,
   Trash2,
 } from "lucide-react";
 import { ReactNode } from "react";
@@ -178,31 +179,43 @@ function ChapterItem({
             </span>
           </div>
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="icon" variant="ghost" className="text-destructive">
-                <Trash2 className="h-4 w-4" />
+          <div className="flex items-center gap-1">
+            <ChapterForm courseId={courseId} initialData={chapter}>
+              <Button size="icon" variant="ghost" aria-label="تعديل الفصل">
+                <Pencil className="h-4 w-4" />
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent dir="rtl">
-              <AlertDialogHeader>
-                <AlertDialogTitle>حذف الفصل</AlertDialogTitle>
-                <AlertDialogDescription>
-                  هل أنت متأكد من حذف الفصل "{chapter.title}"؟ سيتم حذف جميع
-                  الدروس المرتبطة به.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => deleteChapterMutation.mutate(chapter.id)}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            </ChapterForm>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-destructive"
                 >
-                  حذف
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent dir="rtl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>حذف الفصل</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    هل أنت متأكد من حذف الفصل "{chapter.title}"؟ سيتم حذف جميع
+                    الدروس المرتبطة به.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteChapterMutation.mutate(chapter.id)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    حذف
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
 
         <CollapsibleContent className="space-y-2 rounded-b-md px-3 py-2">
@@ -239,36 +252,49 @@ function ChapterItem({
                           {lesson.title}
                         </span>
                       </div>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+
+                      <div className="flex items-center gap-1">
+                        <LessonForm chapterId={chapter.id} initialData={lesson}>
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="text-destructive"
+                            aria-label="تعديل الدرس"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent dir="rtl">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>حذف الدرس</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              هل أنت متأكد من حذف الدرس "{lesson.title}"؟
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() =>
-                                deleteLessonMutation.mutate(lesson.id)
-                              }
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        </LessonForm>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="text-destructive"
                             >
-                              حذف
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent dir="rtl">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>حذف الدرس</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                هل أنت متأكد من حذف الدرس "{lesson.title}"؟
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() =>
+                                  deleteLessonMutation.mutate(lesson.id)
+                                }
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                حذف
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   )}
                 </SortableItem>

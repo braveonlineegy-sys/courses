@@ -310,6 +310,7 @@ model Lesson {
   thumbnail   String?
   video       String? //youtube link
   pdfLink     String?
+  isFree      Boolean @default(false)
 
   chapterId      String
   Chapter        Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
